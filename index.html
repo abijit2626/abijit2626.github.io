@@ -3,161 +3,279 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Abijit — Detection Engineering &amp; SOC</title>
+<title>Abijit — Detection Engineering</title>
 <meta name="description" content="Third-year CS student working the defensive side of security: detection engineering, SIEM operations and endpoint telemetry.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--fg:#e6edf3;--mute:#8b949e;--a:#39d0c4;--b:#79c0ff}
-@media (prefers-color-scheme:light){:root{--bg:#fff;--card:#f6f8fa;--line:#d0d7de;--fg:#1f2328;--mute:#59636e;--a:#0a7f76;--b:#0969da}}
+:root{--paper:#ece9e1;--paper2:#f4f1ea;--ink:#111;--mute:#5d5b55;--line:#111;--lime:#c6f24e;--grey:#cfcbc2;
+  --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Space Mono",ui-monospace,Menlo,Consolas,monospace}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-a{color:var(--b);text-decoration:none}a:hover{text-decoration:underline}
-.wrap{max-width:860px;margin:0 auto;padding:0 16px}
-nav{position:sticky;top:0;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:5}
-nav .wrap{display:flex;gap:20px;align-items:center;height:52px;font-size:14px}
-nav b{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--a);margin-right:auto}
-nav a{color:var(--mute)}nav a:hover{color:var(--fg);text-decoration:none}
-header{padding:72px 0 40px}
-h1{font-size:clamp(2rem,6vw,3rem);line-height:1.15;margin:0 0 12px;background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
-.q{font-style:italic;color:var(--mute);font-size:1.1rem;margin:0 0 24px}
-.tags{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px;padding:0;list-style:none}
-.tags li,.chip{font:12px ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--mute)}
-.btn{display:inline-block;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:8px 16px;border-radius:8px;font-size:14px;margin:0 8px 8px 0}
-.btn:hover{border-color:var(--a);text-decoration:none}
-section{padding:36px 0;border-top:1px solid var(--line)}
-h2{font-size:1.4rem;margin:0 0 20px}
-h2::before{content:"# ";color:var(--a);font-family:ui-monospace,monospace}
-.rules{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
-@media(max-width:420px){.rules{grid-template-columns:1fr}}
-.rules div,.proj{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
-.rules strong{display:block;margin-bottom:4px}
-.rules span{color:var(--mute);font-size:15px}
-.projs{display:grid;gap:16px}
-.proj h3{margin:0 0 6px;font-size:1.1rem}
-.proj p{margin:8px 0;color:var(--mute);font-size:15px}
-.proj .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.proj:hover{border-color:var(--a)}
-table{width:100%;border-collapse:collapse;font-size:15px}
-td,th{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--mute);font-weight:500;width:32%}
-ul{padding-left:20px;color:var(--mute)}li{margin:6px 0}
-footer{padding:32px 0 56px;border-top:1px solid var(--line);color:var(--mute);font-size:14px}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--sans);overflow-x:clip;
+  background-image:linear-gradient(rgba(0,0,0,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.045) 1px,transparent 1px);background-size:48px 48px}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--lime)}
+.wrap{max-width:1360px;margin:0 auto;padding:0 24px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+#bar{position:fixed;top:0;left:0;height:3px;background:var(--ink);width:0;z-index:20}
+
+/* nav */
+nav{position:sticky;top:16px;z-index:10;margin:16px auto 0;max-width:1360px;padding:0 24px}
+.navbox{display:flex;align-items:center;gap:14px;border:1px solid var(--ink);background:rgba(236,233,225,.9);backdrop-filter:blur(8px);padding:12px 14px}
+.logo{width:34px;height:34px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);display:grid;place-items:center;font:700 16px var(--mono)}
+.navbox .who{font:700 11px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.navbox .who span{color:var(--mute);font-weight:400}
+.links{margin-left:auto;display:flex;gap:22px}
+.links a{font:400 11px var(--mono);letter-spacing:.04em;text-transform:uppercase;position:relative}
+.links a i{font-style:normal;color:#9a978f;margin-right:5px;font-size:9px}
+.links a::after{content:"";position:absolute;left:0;bottom:-3px;height:1px;width:0;background:var(--ink);transition:width .25s}
+.links a:hover::after{width:100%}
+@media(max-width:760px){.links{display:none}}
+
+/* hero */
+.hero{position:relative;min-height:calc(100vh - 60px);padding:56px 24px 32px;display:flex;flex-direction:column}
+.hero .top{display:flex;justify-content:space-between;color:var(--mute)}
+.dot{display:inline-block;width:9px;height:9px;border:1.5px solid #6a8a00;border-radius:50%;background:var(--lime);margin-right:8px;animation:pulse 2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(198,242,78,.35)}}
+.sub{margin:64px 0 8px;color:var(--mute);font-size:20px;max-width:520px}
+h1.big{font-size:clamp(3.4rem,13vw,11rem);line-height:.86;letter-spacing:-.055em;font-weight:700;margin:0}
+h1.big .ln{display:block;overflow:hidden;padding-bottom:.06em}
+h1.big .ln span{display:inline-block;transform:translateY(105%);animation:up .9s cubic-bezier(.2,.8,.2,1) forwards}
+h1.big .ln:nth-child(2) span{animation-delay:.12s}
+h1.big .x{color:#6d6b64;font-weight:400;margin-left:.12em}
+@keyframes up{to{transform:none}}
+.hero .row{margin-top:auto;padding-top:56px;display:flex;gap:32px;align-items:flex-end;justify-content:flex-end;flex-wrap:wrap}
+.hero .row p{max-width:410px;margin:0;font-size:18px}
+.btn{display:inline-flex;gap:12px;align-items:center;border:1px solid var(--ink);padding:14px 22px;font:500 14px var(--sans);transition:transform .2s,background .2s,color .2s}
+.btn.dark{background:var(--ink);color:var(--paper)}
+.btn:hover{transform:translate(-3px,-3px);box-shadow:4px 4px 0 var(--lime);border-color:var(--ink)}
+.meta{display:flex;gap:40px;flex-wrap:wrap;border-top:1px solid var(--ink);margin-top:28px;padding-top:16px}
+.meta span{color:var(--mute)}.meta b{font-weight:700;color:var(--ink);margin-left:8px}
+.radar{position:absolute;right:2%;top:12%;width:min(38vw,460px);aspect-ratio:1;pointer-events:none;opacity:.9;transition:transform .2s}
+.radar svg{width:100%;height:100%}
+.sweep{transform-origin:200px 200px;animation:spin 7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.blip{animation:blip 7s infinite}
+@keyframes blip{0%,100%{opacity:.15}20%{opacity:1}}
+@media(max-width:820px){.radar{opacity:.28;width:80vw;right:-20%;top:20%}.hero .row{justify-content:flex-start}}
+
+/* marquee */
+.marq{border-top:1px solid #cbc7be;border-bottom:1px solid #cbc7be;background:var(--paper2);position:relative;padding:34px 0;overflow:hidden}
+.marq .tag{position:absolute;left:24px;top:-1px;border:1px solid #9a978f;background:var(--paper2);padding:2px 8px;color:#77746c;z-index:2}
+.track{display:flex;gap:56px;width:max-content;animation:marq 32s linear infinite}
+.marq:hover .track{animation-play-state:paused}
+.track span{font:700 22px var(--mono);color:#8b8880;white-space:nowrap;letter-spacing:-.02em}
+@keyframes marq{to{transform:translateX(-50%)}}
+
+/* sections */
+section{padding:120px 0 40px;position:relative}
+.head{display:grid;grid-template-columns:minmax(120px,320px) 1fr;gap:24px;margin-bottom:64px}
+.num{width:28px;height:28px;border:1px solid var(--ink);border-radius:50%;display:grid;place-items:center;font:400 10px var(--mono);margin-bottom:10px}
+.head .lab{color:var(--mute)}
+h2{font-size:clamp(2.2rem,6vw,4.6rem);line-height:1;letter-spacing:-.04em;font-weight:500;margin:0 0 24px;max-width:15ch}
+.head p{max-width:520px;color:var(--mute);margin:0}
+@media(max-width:760px){.head{grid-template-columns:1fr}}
+
+.rv{opacity:0;transform:translateY(34px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+/* shelf */
+.shelf{border:1px solid var(--ink)}
+.shelf .bar{display:flex;justify-content:space-between;padding:10px 14px;background:var(--paper2);border-bottom:1px solid var(--ink)}
+.stage{background:#e5dfcf;background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.035) 0 2px,transparent 2px 14px);padding:70px 40px 90px;display:flex;justify-content:center;min-height:520px;align-items:center;overflow:hidden}
+.card{--r:0deg;position:relative;flex:0 0 212px;height:330px;margin-left:-22px;padding:18px;border:1px solid var(--ink);display:flex;flex-direction:column;
+  transform:rotate(var(--r)) translateY(var(--y,0));box-shadow:8px 8px 0 rgba(0,0,0,.18);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .3s,margin .45s;background:var(--paper2)}
+.card:first-child{margin-left:0}
+.card .n{display:flex;justify-content:space-between;font:400 10px var(--mono)}
+.card .tg{margin-top:auto;font:400 10px var(--mono);opacity:.7;text-transform:none}
+.card h3{font-size:26px;line-height:1;letter-spacing:-.035em;margin:8px 0 10px;font-weight:700}
+.card p{font-size:13px;line-height:1.4;margin:0 0 12px;opacity:.85}
+.card .chips{border-top:1px solid currentColor;padding-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid currentColor;font:400 9px var(--mono);padding:2px 6px;text-transform:uppercase}
+.c1{background:#111;color:#f1eee6;--r:-6deg;--y:26px}
+.c2{background:#f7f5ee;--r:-3deg;--y:6px}
+.c3{background:var(--grey);--r:0deg;--y:-8px}
+.c4{background:var(--lime);--r:3deg;--y:2px}
+.c5{background:#f7f5ee;--r:-2deg;--y:14px}
+.c6{background:var(--lime);--r:0deg;--y:-4px;margin-left:44px}
+.card:hover{transform:rotate(0) translateY(-26px) scale(1.04);z-index:5;box-shadow:14px 14px 0 rgba(0,0,0,.25)}
+.card .arr{transition:transform .25s}.card:hover .arr{transform:translate(3px,-3px)}
+@media(max-width:1100px){.stage{justify-content:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;padding:60px 24px 80px}.card{scroll-snap-align:center}}
+.also{margin-top:36px;border-top:1px solid var(--ink)}
+.also a{display:grid;grid-template-columns:70px 1fr auto;gap:16px;padding:20px 0;border-bottom:1px solid #b9b5ab;align-items:baseline;transition:padding .25s,background .25s}
+.also a:hover{padding-left:14px;background:var(--lime)}
+.also b{font-size:22px;letter-spacing:-.03em}.also small{color:var(--mute)}
+@media(max-width:600px){.also a{grid-template-columns:1fr auto}.also a small{display:none}}
+
+/* about */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:64px}
+@media(max-width:900px){.about{grid-template-columns:1fr}}
+.pill{display:inline-block;border:1px solid var(--ink);padding:3px 8px;margin-bottom:22px;color:var(--ink)}
+.lead{font-size:clamp(1.8rem,3.4vw,2.8rem);line-height:1.12;letter-spacing:-.03em;font-weight:400;margin:0 0 24px}
+mark{background:var(--lime);padding:0 5px;color:var(--ink)}
+.about p{color:var(--mute)}
+.kv{border-top:1px solid var(--ink)}
+.kv div{display:grid;grid-template-columns:150px 1fr;gap:18px;padding:18px 0;border-bottom:1px solid #b9b5ab}
+.kv dt,.kv .k{color:var(--mute);padding-top:4px}
+.kv .v{font-size:16px}
+
+/* principles / writing style list */
+.list{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);border:1px solid var(--ink);background:var(--paper2)}
+.list .art{background:var(--ink);color:var(--paper);padding:32px;display:flex;flex-direction:column;justify-content:space-between;min-height:420px;position:relative;overflow:hidden}
+.art .big{font-size:clamp(4rem,10vw,9rem);font-weight:700;letter-spacing:-.06em;line-height:.8;color:var(--lime)}
+.art svg{position:absolute;inset:auto -30px -30px auto;width:70%;opacity:.25}
+.rows>div{padding:26px 30px;border-bottom:1px solid var(--ink);display:grid;grid-template-columns:70px 1fr;gap:14px;transition:background .25s}
+.rows>div:last-child{border-bottom:0}
+.rows>div:hover{background:var(--lime)}
+.rows h3{margin:0 0 6px;font-size:24px;letter-spacing:-.03em;font-weight:500}
+.rows p{margin:0;color:var(--mute);font-size:15px;max-width:52ch}
+.rows>div:hover p{color:var(--ink)}
+@media(max-width:860px){.list{grid-template-columns:1fr}.list .art{min-height:220px}}
+
+/* experience */
+.tl{border-top:1px solid var(--ink)}
+.tl>div{display:grid;grid-template-columns:200px 1fr 1fr;gap:24px;padding:30px 0;border-bottom:1px solid #b9b5ab}
+.tl h3{margin:0;font-size:24px;letter-spacing:-.03em;font-weight:500}
+.tl p{margin:0;color:var(--mute)}
+@media(max-width:820px){.tl>div{grid-template-columns:1fr;gap:6px}}
+
+/* contact */
+.contact{padding-bottom:80px}
+.mail{display:block;font-size:clamp(2rem,8.5vw,7.6rem);letter-spacing:-.05em;font-weight:700;line-height:1;word-break:break-all;margin:8px 0 36px;position:relative;width:fit-content;max-width:100%}
+.mail::after{content:"";position:absolute;left:0;bottom:-6px;height:6px;width:100%;background:var(--lime);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.mail:hover::after{transform:scaleX(1)}
+footer{border-top:1px solid var(--ink);padding:22px 0 40px;display:flex;justify-content:space-between;color:var(--mute);flex-wrap:wrap;gap:10px}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}h1.big .ln span{transform:none}}
 </style>
 </head>
 <body>
-<nav><div class="wrap"><b>abijit@sentinel</b><a href="#about">About</a><a href="#work">Work</a><a href="#tech">Tech</a><a href="#contact">Contact</a></div></nav>
+<div id="bar"></div>
 
-<main class="wrap">
-<header>
-  <h1>Detection engineering, blue team, SOC.</h1>
-  <p class="q">How do you know something bad is happening — and how do you prove it wasn't just noise?</p>
-  <ul class="tags">
-    <li>focus: detection engineering / SOC</li>
-    <li>open to: SOC placements 2027–2028</li>
-    <li>CTFs: Hacker101 · HTB</li>
-  </ul>
-  <a class="btn" href="#work">See my work</a>
-  <a class="btn" href="https://github.com/abijit2626">GitHub</a>
-  <a class="btn" href="mailto:Abijit2626@gmail.com">Email me</a>
-</header>
-
-<section id="about">
-  <h2>About</h2>
-  <p>I'm a third-year CS student working the defensive side of security — detection engineering, SIEM operations and endpoint telemetry.</p>
-  <p>I build small systems that force me to learn how detection actually works underneath the dashboard: what counts as a signal, when it's allowed to fire, and why most of them shouldn't. Several of my projects are independent attempts at the same hard problem — separating real attacker behaviour from the enormous amount of ordinary software that merely looks suspicious.</p>
-  <p>Outside of that: CTFs, a Wazuh home lab, and running a security study jam for students at my college who have never touched this before.</p>
-
-  <h2 style="margin-top:36px">How I think about detection</h2>
-  <div class="rules">
-    <div><strong>Capability is not intent.</strong><span>Plenty of trusted software installs keyboard hooks, opens raw sockets, reads the clipboard. Flagging capability alone builds a tool analysts learn to ignore.</span></div>
-    <div><strong>Persistence amplifies risk.</strong><span>A single observation is a data point. Behaviour that survives over time is a signal.</span></div>
-    <div><strong>Every signal explains itself.</strong><span>If I can't say why something scored what it did, nobody can triage it. A model score only amplifies a rule that already fired.</span></div>
-    <div><strong>Correlation beats volume.</strong><span>One high-confidence incident from a complete attack chain is worth more than a thousand isolated alerts.</span></div>
+<nav><div class="navbox">
+  <div class="logo">A</div>
+  <div class="who">Abijit <span>/ Blue Teamer</span></div>
+  <div class="links">
+    <a href="#work"><i>01</i>Work</a><a href="#about"><i>02</i>About</a><a href="#principles"><i>03</i>Principles</a><a href="#record"><i>04</i>Record</a><a href="#contact"><i>05</i>Contact</a>
   </div>
-</section>
+</div></nav>
 
-<section id="work">
-  <h2>Selected work</h2>
-  <div class="projs">
-
-    <article class="proj">
-      <h3><a href="https://github.com/abijit2626/ambit">ambit</a></h3>
-      <p>A provenance and control plane for Claude Code agents and the MCP servers they connect to, built in response to documented attacks: <b>s1ngularity</b> (malicious npm packages re-invoking installed AI CLIs to exfiltrate credentials) and <b>GTG-1002</b> (an espionage campaign decomposed into thousands of innocuous agent subtasks).</p>
-      <p>An endpoint daemon holds everything needing a live, sub-millisecond verdict; Wazuh is the fleet plane for correlation and alerting and never sits in the synchronous path. M0, the observation layer, is complete and tested; later milestones are design only.</p>
-      <div class="chips"><span class="chip">Go</span><span class="chip">Wazuh</span><span class="chip">MCP</span></div>
-    </article>
-
-    <article class="proj">
-      <h3><a href="https://github.com/abijit2626/keyboard-hook-behavioral-detector">keyboard-hook-behavioral-detector</a></h3>
-      <p>Finds processes <i>capable</i> of keylogging and scores how suspicious they look over time. It never hooks the keyboard or captures keystrokes — it's the detector, not the thing detected.</p>
-      <p>Three gated signal layers: a rule engine with temporal persistence and risk decay; a RandomForest trained on ClaMP (5,210 labelled Windows executables, 67 PE-header features); and an import-table fingerprint mapped to MITRE ATT&amp;CK. ML can only amplify a rule-based trigger, never create one.</p>
-      <div class="chips"><span class="chip">Python</span><span class="chip">Windows</span><span class="chip">scikit-learn</span></div>
-    </article>
-
-    <article class="proj">
-      <h3><a href="https://github.com/abijit2626/SIEM-Project">SIEM-Project — Attack Chain SIEM</a></h3>
-      <p>A stateful correlation engine that raises an incident only when a full chain appears in order inside a time window: access anomaly → C2 beacon → objective behaviour.</p>
-      <p>Beacons are found by interval-variance analysis rather than ML, so every flag can be walked through by hand. Tests assert the negative cases as hard as the positive ones — restraint is the point.</p>
-      <div class="chips"><span class="chip">Python (stdlib only)</span></div>
-    </article>
-
-    <article class="proj">
-      <h3><a href="https://github.com/abijit2626/wazuh-investigations">wazuh-investigations</a></h3>
-      <p>A SOC home lab with both sides in one repo: a stateful, MITRE-mapped adversary telemetry generator (T1110.001 brute force into T1003.001 LSASS dumping), and the investigations from pointing Wazuh at it — alert triage, false-positive root causes, and the detections that <i>didn't</i> fire, each with the rule needed to close the gap.</p>
-      <div class="chips"><span class="chip">Python</span><span class="chip">Wazuh</span><span class="chip">Sysmon</span></div>
-    </article>
-
-    <article class="proj">
-      <h3><a href="https://github.com/abijit2626/personal-recon-tool">personal-recon-tool — Ghost</a></h3>
-      <p>A modular recon framework for CTFs, HTB and authorised engagements: ten pipeline stages from port scan to SSL/TLS to screenshots, ending in a self-contained HTML report. Tools are probed before use, every command runs under a timeout, and output never overwrites.</p>
-      <div class="chips"><span class="chip">Bash</span></div>
-    </article>
-
-    <article class="proj">
-      <h3><a href="https://github.com/abijit2626/ctf-workshop">ctf-workshop</a></h3>
-      <p>An 18-challenge, one-day CTF I built and run for the TinkerHub study jam for students with no security background. Three rounds, fully offline, Dockerised behind one command, with progressive hints on every challenge. 38 automated checks validate all flags at startup.</p>
-      <div class="chips"><span class="chip">Python</span><span class="chip">Flask</span><span class="chip">Docker</span></div>
-    </article>
-
-    <article class="proj">
-      <h3><a href="https://github.com/abijit2626/hackerone-ctf-writeups">hackerone-ctf-writeups</a></h3>
-      <p>Solved-and-explained Hacker101 writeups: Micro-CMS v1 and v2, A Little Something to Get You Started, and Encrypted Pastebin. The padding-oracle work fed straight into a live instructor demo at the study jam.</p>
-    </article>
+<main>
+<div class="wrap hero">
+  <div class="radar" id="radar">
+    <svg viewBox="0 0 400 400" fill="none" stroke="#111" stroke-width="1">
+      <circle cx="200" cy="200" r="196" opacity=".7"/><circle cx="200" cy="200" r="150" opacity=".5"/>
+      <circle cx="200" cy="200" r="104" opacity=".5"/><circle cx="200" cy="200" r="58" opacity=".5"/>
+      <path d="M200 4V396M4 200H396" opacity=".35"/><path d="M62 62L338 338M338 62L62 338" opacity=".2"/>
+      <defs><linearGradient id="sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c6f24e" stop-opacity="0"/><stop offset="1" stop-color="#c6f24e" stop-opacity=".9"/></linearGradient></defs>
+      <g class="sweep"><path d="M200 200L396 200A196 196 0 0 0 340 60Z" transform="rotate(-24 200 200)" fill="url(#sw)" stroke="none"/><path d="M200 200H396" stroke="#111"/></g>
+      <g fill="#111" stroke="none"><circle class="blip" cx="290" cy="130" r="4" style="animation-delay:1.6s"/><circle class="blip" cx="130" cy="290" r="4" style="animation-delay:4s"/><circle class="blip" cx="300" cy="270" r="4" style="animation-delay:.4s"/></g>
+    </svg>
   </div>
-</section>
 
-<section id="tech">
-  <h2>Tech</h2>
-  <table>
-    <tr><th>Languages</th><td>Python, Bash, Go, C++, Java</td></tr>
-    <tr><th>Detection &amp; SIEM</th><td>Wazuh, Sysmon, MITRE ATT&amp;CK, detection gap analysis, correlation engines</td></tr>
-    <tr><th>Windows &amp; endpoint</th><td>PE format analysis, import-table fingerprinting, Windows internals, process telemetry</td></tr>
-    <tr><th>Offensive, for defensive ends</th><td>nmap, Burp, service enumeration, web exploitation, steganography</td></tr>
-    <tr><th>Build &amp; infra</th><td>Docker, Flask, scikit-learn, SQLite, Git</td></tr>
-  </table>
-</section>
+  <div class="top mono"><span><i class="dot"></i>Operating / 3rd-year CS student</span><span>Working record / Detection</span></div>
+  <p class="sub">Detection engineering · SIEM operations · Endpoint telemetry</p>
+  <h1 class="big"><span class="ln"><span>DETECTION <em class="x">×</em></span></span><span class="ln"><span>ENGINEER</span></span></h1>
+  <div class="row">
+    <p>Abijit is a computer science student building small detection systems that separate real attacker behaviour from the noise of ordinary software.</p>
+    <a class="btn dark" href="#work">View work <span>↘</span></a>
+    <a class="btn" href="https://github.com/abijit2626">GitHub <span>↗</span></a>
+  </div>
+  <div class="meta mono"><span>Discipline<b>Detection / SOC</b></span><span>Mode<b>Observe / Correlate / Explain</b></span><span>Open to<b>Placements 2027–2028</b></span></div>
+</div>
 
-<section>
-  <h2>Currently</h2>
-  <ul>
-    <li>Extending the Wazuh lab into a detection-as-code pipeline — Sigma rules, Atomic Red Team simulation, CI-validated pass/fail.</li>
-    <li>Building ambit toward an answer to whether current telemetry can tell autonomous AI agent activity apart from a human-driven attack.</li>
-    <li>Running the TinkerHub security study jam.</li>
-  </ul>
-</section>
+<div class="marq"><span class="tag mono">Instruments</span>
+  <div class="track" id="track">
+    <span>Python</span><span>Go</span><span>Bash</span><span>Wazuh</span><span>Sysmon</span><span>MITRE ATT&amp;CK</span><span>Docker</span><span>Flask</span><span>scikit-learn</span><span>SQLite</span><span>nmap</span><span>Burp</span>
+  </div>
+</div>
 
-<section id="contact">
-  <h2>Looking for</h2>
-  <ul>
-    <li>SOC analyst and detection engineering roles through final-year placements (2027–2028)</li>
-    <li>Open source security projects to contribute to</li>
-    <li>Anyone working on detection engineering, SIEM tuning or endpoint telemetry who wants a second pair of eyes</li>
-  </ul>
-  <a class="btn" href="mailto:Abijit2626@gmail.com">Abijit2626@gmail.com</a>
-  <a class="btn" href="https://github.com/abijit2626">github.com/abijit2626</a>
-</section>
+<section id="work"><div class="wrap">
+  <div class="head rv"><div><div class="num">01</div><div class="lab mono">Selected work</div></div>
+    <div><h2>Detection systems that explain themselves.</h2><p>Independent attempts at one hard problem: telling real attacker behaviour from software that merely looks suspicious. Hover a card to pull it off the shelf.</p></div></div>
+
+  <div class="shelf rv">
+    <div class="bar mono"><span>Curated objects / 05</span><span>Shelf mode / Fanned</span></div>
+    <div class="stage">
+      <a class="card c1" href="https://github.com/abijit2626/ambit"><div class="n"><span>01</span><span class="arr">↗</span></div><div class="tg">Go / Wazuh / MCP</div><h3>ambit</h3><p>Provenance and control plane for Claude Code agents and MCP servers.</p><div class="chips"><span class="chip">Go</span><span class="chip">Wazuh</span><span class="chip">MCP</span></div></a>
+      <a class="card c2" href="https://github.com/abijit2626/keyboard-hook-behavioral-detector"><div class="n"><span>02</span><span class="arr">↗</span></div><div class="tg">Python / Windows / ML</div><h3>Keyboard Hook Detector</h3><p>Scores processes capable of keylogging. ML can amplify a rule, never create one.</p><div class="chips"><span class="chip">Python</span><span class="chip">RF</span><span class="chip">ATT&amp;CK</span></div></a>
+      <a class="card c3" href="https://github.com/abijit2626/SIEM-Project"><div class="n"><span>03</span><span class="arr">↗</span></div><div class="tg">Correlation / C2 / Python</div><h3>Attack Chain SIEM</h3><p>Raises an incident only when the whole chain appears in order, in a window.</p><div class="chips"><span class="chip">stdlib</span><span class="chip">Beacons</span></div></a>
+      <a class="card c4" href="https://github.com/abijit2626/wazuh-investigations"><div class="n"><span>04</span><span class="arr">↗</span></div><div class="tg">Wazuh / Sysmon / MITRE</div><h3>Wazuh Investigations</h3><p>Adversary simulator plus write-ups of the detections that didn't fire.</p><div class="chips"><span class="chip">Wazuh</span><span class="chip">Sysmon</span></div></a>
+      <a class="card c5" href="https://github.com/abijit2626/ctf-workshop"><div class="n"><span>05</span><span class="arr">↗</span></div><div class="tg">Flask / Docker / Teaching</div><h3>CTF Workshop</h3><p>An 18-challenge offline CTF for beginners, with 38 self-tests at startup.</p><div class="chips"><span class="chip">Flask</span><span class="chip">Docker</span></div></a>
+      <a class="card c6" href="https://github.com/abijit2626?tab=repositories"><div class="n"><span>/ More</span><span class="arr">↗</span></div><div class="tg">GitHub / abijit2626</div><h3>Explore more work</h3><p>Recon tooling, CTF write-ups and work in progress.</p><div class="chips"><span class="chip">All repos</span></div></a>
+    </div>
+  </div>
+
+  <div class="also rv">
+    <a href="https://github.com/abijit2626/personal-recon-tool"><span class="mono">06</span><span><b>Ghost</b> <small>— modular recon framework, ten pipeline stages, one HTML report</small></span><span class="mono">Bash ↗</span></a>
+    <a href="https://github.com/abijit2626/hackerone-ctf-writeups"><span class="mono">07</span><span><b>Hacker101 writeups</b> <small>— Micro-CMS, Encrypted Pastebin padding oracle and more</small></span><span class="mono">Writeups ↗</span></a>
+  </div>
+</div></section>
+
+<section id="about"><div class="wrap">
+  <div class="head rv"><div><div class="num">02</div><div class="lab mono">About / Profile</div></div>
+    <div><h2>Learning the defensive side from underneath the dashboard.</h2></div></div>
+  <div class="about">
+    <div class="rv">
+      <span class="pill mono">Profile / 01</span>
+      <p class="lead">I'm <mark>Abijit</mark>, a third-year CS student who wants to know what counts as a signal, when it's allowed to fire, and why most of them shouldn't.</p>
+      <p>I work on detection engineering, SIEM operations and endpoint telemetry. Outside of that: CTFs, a Wazuh home lab, and a security study jam for students at my college who have never touched this before.</p>
+    </div>
+    <dl class="kv rv" style="margin:0">
+      <div><span class="k mono">Current focus</span><span class="v">Detection-as-code with Sigma and Atomic Red Team, and ambit's agent telemetry.</span></div>
+      <div><span class="k mono">Studying</span><span class="v">Third-year computer science.</span></div>
+      <div><span class="k mono">Working mode</span><span class="v">Python, Bash, Go, Wazuh, Sysmon, nmap, Burp, Docker and Windows internals.</span></div>
+      <div><span class="k mono">Looking for</span><span class="v">SOC analyst and detection engineering roles via final-year placements, 2027–2028.</span></div>
+    </dl>
+  </div>
+</div></section>
+
+<section id="principles"><div class="wrap">
+  <div class="head rv"><div><div class="num">03</div><div class="lab mono">Principles / Field rules</div></div>
+    <div><h2>Rules I keep arriving at independently.</h2><p>Four ideas that show up across unrelated projects, each one the reason something in the work above stays quiet.</p></div></div>
+  <div class="list rv">
+    <div class="art"><span class="mono">Rulebook / 04</span><div class="big">4</div>
+      <svg viewBox="0 0 200 200" fill="none" stroke="#c6f24e"><circle cx="100" cy="100" r="98"/><circle cx="100" cy="100" r="66"/><circle cx="100" cy="100" r="34"/></svg></div>
+    <div class="rows">
+      <div><span class="mono">01</span><div><h3>Capability is not intent.</h3><p>Trusted software installs keyboard hooks and reads the clipboard. Flagging capability alone builds a tool analysts learn to ignore.</p></div></div>
+      <div><span class="mono">02</span><div><h3>Persistence amplifies risk.</h3><p>A single observation is a data point. Behaviour that survives over time is a signal.</p></div></div>
+      <div><span class="mono">03</span><div><h3>Every signal explains itself.</h3><p>If I can't say why it scored what it did, nobody can triage it. A model score only amplifies a rule that already fired.</p></div></div>
+      <div><span class="mono">04</span><div><h3>Correlation beats volume.</h3><p>One incident from a complete attack chain is worth more than a thousand isolated alerts.</p></div></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="record"><div class="wrap">
+  <div class="head rv"><div><div class="num">04</div><div class="lab mono">Experience / Record</div></div>
+    <div><h2>Building, breaking, and teaching.</h2></div></div>
+  <div class="tl rv">
+    <div><span class="mono">Ongoing</span><h3>TinkerHub security study jam</h3><p>Design and run a one-day CTF for students with no security background: 18 challenges, three rounds, fully offline, live instructor demos.</p></div>
+    <div><span class="mono">Home lab</span><h3>Wazuh SOC lab</h3><p>A stateful adversary simulator feeding Wazuh, with triage, false-positive root causes and detection-gap write-ups.</p></div>
+    <div><span class="mono">Competitions</span><h3>Hacker101 &amp; HTB</h3><p>CTF practice on web exploitation, padding oracles and service enumeration, documented as write-ups.</p></div>
+  </div>
+</div></section>
+
+<section id="contact" class="contact"><div class="wrap">
+  <div class="head rv"><div><div class="num">05</div><div class="lab mono">Contact</div></div>
+    <div><h2>Second pair of eyes wanted?</h2><p>Working on detection engineering, SIEM tuning or endpoint telemetry, or hiring for 2027–2028? Say hello.</p></div></div>
+  <a class="mail rv" href="mailto:Abijit2626@gmail.com">Abijit2626<wbr>@gmail.com</a>
+  <a class="btn dark" href="https://github.com/abijit2626">GitHub <span>↗</span></a>
+</div></section>
 </main>
 
-<footer><div class="wrap">© 2026 Abijit</div></footer>
+<div class="wrap"><footer class="mono"><span>© 2026 Abijit</span><span>Detection / SOC / Blue team</span></footer></div>
+
+<script>
+(function(){
+  var t=document.getElementById('track');t.innerHTML+=t.innerHTML;
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.rv').forEach(function(el){io.observe(el)});
+  var bar=document.getElementById('bar'),radar=document.getElementById('radar');
+  addEventListener('scroll',function(){var h=document.documentElement;bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
+  addEventListener('mousemove',function(e){var x=(e.clientX/innerWidth-.5)*24,y=(e.clientY/innerHeight-.5)*24;radar.style.transform='translate('+x+'px,'+y+'px)'});
+})();
+</script>
 </body>
 </html>
