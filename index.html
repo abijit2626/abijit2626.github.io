@@ -7,274 +7,427 @@
 <meta name="description" content="Third-year CS student working the defensive side of security: detection engineering, SIEM operations and endpoint telemetry.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--paper:#ece9e1;--paper2:#f4f1ea;--ink:#111;--mute:#5d5b55;--line:#111;--lime:#c6f24e;--grey:#cfcbc2;
-  --sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"Space Mono",ui-monospace,Menlo,Consolas,monospace}
+:root{--bg:#070b10;--panel:#0d141c;--line:#1c2733;--teal:#39d0c4;--blue:#79c0ff;--amber:#f5b342;--red:#ff5d6c;--fg:#d7e2ee;--mute:#7b8a99;
+  --sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:clip}
-body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--sans);overflow-x:clip;
-  background-image:linear-gradient(rgba(0,0,0,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.045) 1px,transparent 1px);background-size:48px 48px}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--sans);overflow-x:clip}
 a{color:inherit;text-decoration:none}
-::selection{background:var(--lime)}
-.wrap{max-width:1360px;margin:0 auto;padding:0 24px}
-.mono{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
-#bar{position:fixed;top:0;left:0;height:3px;background:var(--ink);width:0;z-index:20}
+::selection{background:var(--teal);color:#001}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.mono{font-family:var(--mono)}
+#scan{position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+#prog{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--teal),var(--blue));z-index:60;box-shadow:0 0 12px var(--teal)}
 
-/* nav */
-nav{position:sticky;top:16px;z-index:10;margin:16px auto 0;max-width:1360px;padding:0 24px}
-.navbox{display:flex;align-items:center;gap:14px;border:1px solid var(--ink);background:rgba(236,233,225,.9);backdrop-filter:blur(8px);padding:12px 14px}
-.logo{width:34px;height:34px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);display:grid;place-items:center;font:700 16px var(--mono)}
-.navbox .who{font:700 11px var(--mono);letter-spacing:.06em;text-transform:uppercase}
-.navbox .who span{color:var(--mute);font-weight:400}
-.links{margin-left:auto;display:flex;gap:22px}
-.links a{font:400 11px var(--mono);letter-spacing:.04em;text-transform:uppercase;position:relative}
-.links a i{font-style:normal;color:#9a978f;margin-right:5px;font-size:9px}
-.links a::after{content:"";position:absolute;left:0;bottom:-3px;height:1px;width:0;background:var(--ink);transition:width .25s}
-.links a:hover::after{width:100%}
-@media(max-width:760px){.links{display:none}}
+/* top bar */
+header.bar{position:sticky;top:0;z-index:40;background:rgba(7,11,16,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header.bar .wrap{display:flex;align-items:center;gap:22px;height:54px;font:500 12px var(--mono)}
+.brand{color:var(--teal);font-weight:700}.brand i{font-style:normal;color:var(--mute);font-weight:400}
+.live{display:flex;align-items:center;gap:8px;color:var(--mute)}
+.live b{width:8px;height:8px;border-radius:50%;background:var(--teal);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(57,208,196,.6)}100%{box-shadow:0 0 0 10px rgba(57,208,196,0)}}
+header.bar nav{margin-left:auto;display:flex;gap:20px}
+header.bar nav a{color:var(--mute);transition:color .2s}header.bar nav a:hover{color:var(--teal)}
+@media(max-width:700px){header.bar nav{display:none}.live{margin-left:auto}}
 
 /* hero */
-.hero{position:relative;min-height:calc(100vh - 60px);padding:56px 24px 32px;display:flex;flex-direction:column}
-.hero .top{display:flex;justify-content:space-between;color:var(--mute)}
-.dot{display:inline-block;width:9px;height:9px;border:1.5px solid #6a8a00;border-radius:50%;background:var(--lime);margin-right:8px;animation:pulse 2s infinite}
-@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(198,242,78,.35)}}
-.sub{margin:64px 0 8px;color:var(--mute);font-size:20px;max-width:520px}
-h1.big{font-size:clamp(3.4rem,13vw,11rem);line-height:.86;letter-spacing:-.055em;font-weight:700;margin:0}
-h1.big .ln{display:block;overflow:hidden;padding-bottom:.06em}
-h1.big .ln span{display:inline-block;transform:translateY(105%);animation:up .9s cubic-bezier(.2,.8,.2,1) forwards}
-h1.big .ln:nth-child(2) span{animation-delay:.12s}
-h1.big .x{color:#6d6b64;font-weight:400;margin-left:.12em}
-@keyframes up{to{transform:none}}
-.hero .row{margin-top:auto;padding-top:56px;display:flex;gap:32px;align-items:flex-end;justify-content:flex-end;flex-wrap:wrap}
-.hero .row p{max-width:410px;margin:0;font-size:18px}
-.btn{display:inline-flex;gap:12px;align-items:center;border:1px solid var(--ink);padding:14px 22px;font:500 14px var(--sans);transition:transform .2s,background .2s,color .2s}
-.btn.dark{background:var(--ink);color:var(--paper)}
-.btn:hover{transform:translate(-3px,-3px);box-shadow:4px 4px 0 var(--lime);border-color:var(--ink)}
-.meta{display:flex;gap:40px;flex-wrap:wrap;border-top:1px solid var(--ink);margin-top:28px;padding-top:16px}
-.meta span{color:var(--mute)}.meta b{font-weight:700;color:var(--ink);margin-left:8px}
-.radar{position:absolute;right:2%;top:12%;width:min(38vw,460px);aspect-ratio:1;pointer-events:none;opacity:.9;transition:transform .2s}
-.radar svg{width:100%;height:100%}
-.sweep{transform-origin:200px 200px;animation:spin 7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.blip{animation:blip 7s infinite}
-@keyframes blip{0%,100%{opacity:.15}20%{opacity:1}}
-@media(max-width:820px){.radar{opacity:.28;width:80vw;right:-20%;top:20%}.hero .row{justify-content:flex-start}}
+.hero{position:relative;min-height:calc(100vh - 54px);display:flex;align-items:center;overflow:hidden}
+#net{position:absolute;inset:0;width:100%;height:100%}
+.hero .wrap{position:relative;z-index:2;padding-top:60px;padding-bottom:60px}
+.prompt{font:500 13px var(--mono);color:var(--teal);margin-bottom:18px}
+.prompt .cur{display:inline-block;width:9px;height:1.05em;background:var(--teal);vertical-align:-2px;margin-left:3px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+h1{font-size:clamp(2.4rem,7vw,5.6rem);line-height:1;letter-spacing:-.04em;font-weight:800;margin:0 0 22px;max-width:14ch}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 .w{display:inline-block;opacity:0;transform:translateY(24px) rotateX(40deg);animation:w .8s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes w{to{opacity:1;transform:none}}
+.lede{font-size:clamp(1.05rem,2vw,1.3rem);color:var(--mute);max-width:560px;margin:0 0 30px}
+.lede b{color:var(--fg);font-weight:500}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 20px;border:1px solid var(--line);background:var(--panel);font:500 13px var(--mono);border-radius:6px;transition:.25s;position:relative;overflow:hidden}
+.btn:hover{border-color:var(--teal);color:var(--teal);box-shadow:0 0 24px rgba(57,208,196,.25);transform:translateY(-2px)}
+.btn.pri{background:var(--teal);color:#001;border-color:var(--teal);font-weight:700}
+.btn.pri:hover{color:#001;box-shadow:0 0 30px rgba(57,208,196,.5)}
+.status{position:absolute;right:20px;bottom:24px;z-index:3;width:min(340px,calc(100% - 40px));background:rgba(13,20,28,.88);border:1px solid var(--line);border-radius:8px;font:400 12px/1.7 var(--mono);padding:12px 14px;backdrop-filter:blur(6px)}
+.status .t{color:var(--mute);margin-bottom:6px;display:flex;justify-content:space-between}
+.status div.ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ok{color:var(--teal)}.warn{color:var(--amber)}.bad{color:var(--red)}
+@media(max-width:800px){.status{position:relative;right:auto;bottom:auto;margin:0 20px 24px}.hero{flex-direction:column;align-items:stretch;justify-content:center}}
 
-/* marquee */
-.marq{border-top:1px solid #cbc7be;border-bottom:1px solid #cbc7be;background:var(--paper2);position:relative;padding:34px 0;overflow:hidden}
-.marq .tag{position:absolute;left:24px;top:-1px;border:1px solid #9a978f;background:var(--paper2);padding:2px 8px;color:#77746c;z-index:2}
-.track{display:flex;gap:56px;width:max-content;animation:marq 32s linear infinite}
-.marq:hover .track{animation-play-state:paused}
-.track span{font:700 22px var(--mono);color:#8b8880;white-space:nowrap;letter-spacing:-.02em}
-@keyframes marq{to{transform:translateX(-50%)}}
+/* ticker */
+.ticker{border-block:1px solid var(--line);background:var(--panel);overflow:hidden;font:400 12px var(--mono);color:var(--mute);position:relative}
+.ticker::before{content:"SIMULATED TELEMETRY";position:absolute;left:0;top:0;bottom:0;padding:0 14px;display:flex;align-items:center;background:var(--panel);color:var(--amber);z-index:2;border-right:1px solid var(--line);font-size:10px;letter-spacing:.08em}
+.tick{display:flex;gap:44px;padding:13px 0 13px 200px;width:max-content;animation:tick 60s linear infinite}
+@keyframes tick{to{transform:translateX(-50%)}}
+.tick span b{color:var(--blue);font-weight:500}.tick .r{color:var(--red)}.tick .a{color:var(--amber)}
+@media(max-width:600px){.ticker::before{display:none}.tick{padding-left:0}}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:70px}
+.stats div{background:var(--panel);padding:26px 20px}
+.stats b{display:block;font:700 clamp(1.8rem,4vw,2.8rem)/1 var(--mono);color:var(--teal);letter-spacing:-.04em}
+.stats span{font:400 12px var(--mono);color:var(--mute)}
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}}
 
 /* sections */
-section{padding:120px 0 40px;position:relative}
-.head{display:grid;grid-template-columns:minmax(120px,320px) 1fr;gap:24px;margin-bottom:64px}
-.num{width:28px;height:28px;border:1px solid var(--ink);border-radius:50%;display:grid;place-items:center;font:400 10px var(--mono);margin-bottom:10px}
-.head .lab{color:var(--mute)}
-h2{font-size:clamp(2.2rem,6vw,4.6rem);line-height:1;letter-spacing:-.04em;font-weight:500;margin:0 0 24px;max-width:15ch}
-.head p{max-width:520px;color:var(--mute);margin:0}
-@media(max-width:760px){.head{grid-template-columns:1fr}}
-
-.rv{opacity:0;transform:translateY(34px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+section{padding:110px 0 0}
+.sh{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;font:500 12px var(--mono);color:var(--teal);letter-spacing:.06em}
+.sh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+h2{font-size:clamp(1.9rem,4.4vw,3.2rem);line-height:1.08;letter-spacing:-.035em;font-weight:800;margin:0 0 14px;max-width:20ch}
+.sub{color:var(--mute);max-width:600px;margin:0 0 44px}
+.rv{opacity:0;transform:translateY(30px);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1)}
 .rv.in{opacity:1;transform:none}
 
-/* shelf */
-.shelf{border:1px solid var(--ink)}
-.shelf .bar{display:flex;justify-content:space-between;padding:10px 14px;background:var(--paper2);border-bottom:1px solid var(--ink)}
-.stage{background:#e5dfcf;background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.035) 0 2px,transparent 2px 14px);padding:70px 40px 90px;display:flex;justify-content:center;min-height:520px;align-items:center;overflow:hidden}
-.card{--r:0deg;position:relative;flex:0 0 212px;height:330px;margin-left:-22px;padding:18px;border:1px solid var(--ink);display:flex;flex-direction:column;
-  transform:rotate(var(--r)) translateY(var(--y,0));box-shadow:8px 8px 0 rgba(0,0,0,.18);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .3s,margin .45s;background:var(--paper2)}
-.card:first-child{margin-left:0}
-.card .n{display:flex;justify-content:space-between;font:400 10px var(--mono)}
-.card .tg{margin-top:auto;font:400 10px var(--mono);opacity:.7;text-transform:none}
-.card h3{font-size:26px;line-height:1;letter-spacing:-.035em;margin:8px 0 10px;font-weight:700}
-.card p{font-size:13px;line-height:1.4;margin:0 0 12px;opacity:.85}
-.card .chips{border-top:1px solid currentColor;padding-top:10px;display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:1px solid currentColor;font:400 9px var(--mono);padding:2px 6px;text-transform:uppercase}
-.c1{background:#111;color:#f1eee6;--r:-6deg;--y:26px}
-.c2{background:#f7f5ee;--r:-3deg;--y:6px}
-.c3{background:var(--grey);--r:0deg;--y:-8px}
-.c4{background:var(--lime);--r:3deg;--y:2px}
-.c5{background:#f7f5ee;--r:-2deg;--y:14px}
-.c6{background:var(--lime);--r:0deg;--y:-4px;margin-left:44px}
-.card:hover{transform:rotate(0) translateY(-26px) scale(1.04);z-index:5;box-shadow:14px 14px 0 rgba(0,0,0,.25)}
-.card .arr{transition:transform .25s}.card:hover .arr{transform:translate(3px,-3px)}
-@media(max-width:1100px){.stage{justify-content:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;padding:60px 24px 80px}.card{scroll-snap-align:center}}
-.also{margin-top:36px;border-top:1px solid var(--ink)}
-.also a{display:grid;grid-template-columns:70px 1fr auto;gap:16px;padding:20px 0;border-bottom:1px solid #b9b5ab;align-items:baseline;transition:padding .25s,background .25s}
-.also a:hover{padding-left:14px;background:var(--lime)}
-.also b{font-size:22px;letter-spacing:-.03em}.also small{color:var(--mute)}
-@media(max-width:600px){.also a{grid-template-columns:1fr auto}.also a small{display:none}}
+/* incident tickets */
+.tickets{display:grid;gap:14px}
+.tk{--mx:50%;--my:50%;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .25s,transform .25s}
+.tk::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--mx) var(--my),rgba(57,208,196,.12),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+.tk:hover{border-color:#2b3b4c}.tk:hover::before{opacity:1}
+.tk.open{border-color:var(--teal)}
+.tk-h{display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;padding:18px 20px}
+.id{font:500 12px var(--mono);color:var(--mute)}
+.tk-h h3{margin:0;font-size:1.2rem;letter-spacing:-.02em}
+.tk-h h3 small{display:block;font:400 12px var(--mono);color:var(--mute);letter-spacing:0;margin-top:2px}
+.sev{font:700 10px var(--mono);padding:3px 8px;border-radius:4px;letter-spacing:.06em}
+.s-a{background:rgba(57,208,196,.14);color:var(--teal)}.s-b{background:rgba(121,192,255,.14);color:var(--blue)}.s-c{background:rgba(245,179,66,.14);color:var(--amber)}
+.chev{transition:transform .3s;color:var(--mute)}.tk.open .chev{transform:rotate(90deg);color:var(--teal)}
+.tk-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.2,.8,.2,1)}
+.tk.open .tk-b{grid-template-rows:1fr}
+.tk-b>div{overflow:hidden}
+.tk-in{padding:0 20px 22px;display:grid;grid-template-columns:1.4fr 1fr;gap:26px;border-top:1px dashed var(--line);padding-top:18px;margin:0 20px 0;padding-inline:0}
+.tk-in p{margin:0 0 12px;color:#aebccb;font-size:15px}
+.tk-in .quiet{border-left:2px solid var(--teal);padding:2px 0 2px 14px;color:var(--fg);font-size:14px}
+.tk-in .quiet span{display:block;font:500 10px var(--mono);color:var(--teal);letter-spacing:.08em;margin-bottom:2px}
+.kv{font:400 12px/1.9 var(--mono);color:var(--mute)}.kv b{color:var(--fg);font-weight:500}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.tags span{font:400 11px var(--mono);border:1px solid var(--line);padding:2px 8px;border-radius:99px;color:var(--mute)}
+.go{color:var(--teal);font:500 13px var(--mono)}.go:hover{text-decoration:underline}
+@media(max-width:760px){.tk-in{grid-template-columns:1fr}.tk-h{grid-template-columns:auto 1fr auto}.tk-h .sev{display:none}}
 
-/* about */
-.about{display:grid;grid-template-columns:1fr 1fr;gap:64px}
-@media(max-width:900px){.about{grid-template-columns:1fr}}
-.pill{display:inline-block;border:1px solid var(--ink);padding:3px 8px;margin-bottom:22px;color:var(--ink)}
-.lead{font-size:clamp(1.8rem,3.4vw,2.8rem);line-height:1.12;letter-spacing:-.03em;font-weight:400;margin:0 0 24px}
-mark{background:var(--lime);padding:0 5px;color:var(--ink)}
-.about p{color:var(--mute)}
-.kv{border-top:1px solid var(--ink)}
-.kv div{display:grid;grid-template-columns:150px 1fr;gap:18px;padding:18px 0;border-bottom:1px solid #b9b5ab}
-.kv dt,.kv .k{color:var(--mute);padding-top:4px}
-.kv .v{font-size:16px}
+/* lab */
+.lab{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.lab>div{background:var(--panel);padding:26px}
+.lab h4{margin:0 0 4px;font:500 12px var(--mono);color:var(--teal);letter-spacing:.06em}
+.lab p.h{margin:0 0 18px;color:var(--mute);font-size:14px}
+.sw{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;font-size:15px}
+.sw input{display:none}
+.sw i{width:38px;height:22px;border-radius:99px;background:#1a2431;position:relative;flex:none;transition:.25s}
+.sw i::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#5a6a7a;transition:.25s}
+.sw input:checked+i{background:rgba(57,208,196,.25)}.sw input:checked+i::after{left:19px;background:var(--teal);box-shadow:0 0 10px var(--teal)}
+.sw small{display:block;color:var(--mute);font-size:12px}
+.gauge{height:14px;background:#111a24;border-radius:99px;overflow:hidden;margin:6px 0 10px;position:relative}
+.gauge b{display:block;height:100%;width:0;border-radius:99px;background:var(--teal);transition:width .6s cubic-bezier(.2,.8,.2,1),background .4s;box-shadow:0 0 14px currentColor}
+.score{font:800 clamp(3rem,7vw,4.6rem)/1 var(--mono);letter-spacing:-.05em}
+.verdict{font:700 12px var(--mono);letter-spacing:.08em;margin:6px 0 16px;transition:color .3s}
+.why{list-style:none;padding:0;margin:0;font:400 12.5px/1.8 var(--mono);color:var(--mute)}
+.why li{padding-left:16px;position:relative;animation:in .35s both}
+.why li::before{content:"›";position:absolute;left:0;color:var(--teal)}
+@keyframes in{from{opacity:0;transform:translateX(-8px)}}
+.note{font:400 11px var(--mono);color:var(--mute);margin-top:14px;opacity:.7}
+@media(max-width:800px){.lab{grid-template-columns:1fr}}
 
-/* principles / writing style list */
-.list{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);border:1px solid var(--ink);background:var(--paper2)}
-.list .art{background:var(--ink);color:var(--paper);padding:32px;display:flex;flex-direction:column;justify-content:space-between;min-height:420px;position:relative;overflow:hidden}
-.art .big{font-size:clamp(4rem,10vw,9rem);font-weight:700;letter-spacing:-.06em;line-height:.8;color:var(--lime)}
-.art svg{position:absolute;inset:auto -30px -30px auto;width:70%;opacity:.25}
-.rows>div{padding:26px 30px;border-bottom:1px solid var(--ink);display:grid;grid-template-columns:70px 1fr;gap:14px;transition:background .25s}
-.rows>div:last-child{border-bottom:0}
-.rows>div:hover{background:var(--lime)}
-.rows h3{margin:0 0 6px;font-size:24px;letter-spacing:-.03em;font-weight:500}
-.rows p{margin:0;color:var(--mute);font-size:15px;max-width:52ch}
-.rows>div:hover p{color:var(--ink)}
-@media(max-width:860px){.list{grid-template-columns:1fr}.list .art{min-height:220px}}
+/* chain */
+.chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:36px 0 0}
+.stage{flex:1 1 200px;background:var(--panel);border:1px solid var(--line);padding:22px;position:relative;transition:.5s}
+.stage+.stage{margin-left:-1px}
+.stage .n{font:700 11px var(--mono);color:var(--mute);margin-bottom:10px}
+.stage h5{margin:0 0 6px;font-size:1.05rem}
+.stage p{margin:0;font-size:13.5px;color:var(--mute)}
+.stage::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--red);transition:width 1s}
+.chain.go .stage{background:#12121a;border-color:#3a2530}.chain.go .stage .n{color:var(--red)}.chain.go .stage::after{width:100%}
+.chain.go .stage:nth-child(2),.chain.go .stage:nth-child(2)::after{transition-delay:.7s}
+.chain.go .stage:nth-child(3),.chain.go .stage:nth-child(3)::after{transition-delay:1.4s}
+.chain.go .stage:nth-child(4),.chain.go .stage:nth-child(4)::after{transition-delay:2.1s}
+.stage:nth-child(4){}
+.rulecap{margin-top:14px;font:400 12px var(--mono);color:var(--mute)}
 
-/* experience */
-.tl{border-top:1px solid var(--ink)}
-.tl>div{display:grid;grid-template-columns:200px 1fr 1fr;gap:24px;padding:30px 0;border-bottom:1px solid #b9b5ab}
-.tl h3{margin:0;font-size:24px;letter-spacing:-.03em;font-weight:500}
-.tl p{margin:0;color:var(--mute)}
-@media(max-width:820px){.tl>div{grid-template-columns:1fr;gap:6px}}
+/* rules */
+.rules{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.rule{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;position:relative;overflow:hidden;transition:.3s}
+.rule:hover{transform:translateY(-4px);border-color:var(--teal)}
+.rule .n{font:700 44px/1 var(--mono);color:#16212c;position:absolute;right:16px;top:8px;transition:.3s}
+.rule:hover .n{color:rgba(57,208,196,.25)}
+.rule h5{margin:0 0 8px;font-size:1.15rem;letter-spacing:-.02em;position:relative}
+.rule p{margin:0;color:var(--mute);font-size:14.5px;position:relative}
+@media(max-width:700px){.rules{grid-template-columns:1fr}}
+
+/* stack */
+.stack{display:flex;flex-wrap:wrap;gap:10px}
+.stack span{font:500 13px var(--mono);padding:9px 14px;border:1px solid var(--line);background:var(--panel);border-radius:6px;transition:.25s;cursor:default}
+.stack span:hover{border-color:var(--teal);color:var(--teal);transform:translateY(-3px) rotate(-1deg);box-shadow:0 8px 20px rgba(57,208,196,.12)}
+.grp{margin:0 0 26px}.grp h6{margin:0 0 10px;font:500 11px var(--mono);color:var(--mute);letter-spacing:.08em}
 
 /* contact */
-.contact{padding-bottom:80px}
-.mail{display:block;font-size:clamp(2rem,8.5vw,7.6rem);letter-spacing:-.05em;font-weight:700;line-height:1;word-break:break-all;margin:8px 0 36px;position:relative;width:fit-content;max-width:100%}
-.mail::after{content:"";position:absolute;left:0;bottom:-6px;height:6px;width:100%;background:var(--lime);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-.mail:hover::after{transform:scaleX(1)}
-footer{border-top:1px solid var(--ink);padding:22px 0 40px;display:flex;justify-content:space-between;color:var(--mute);flex-wrap:wrap;gap:10px}
-
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}h1.big .ln span{transform:none}}
+.term{background:#05080c;border:1px solid var(--line);border-radius:12px;overflow:hidden;font:400 14px/1.9 var(--mono)}
+.term .tb{display:flex;gap:7px;padding:11px 14px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
+.term .tb i{width:10px;height:10px;border-radius:50%;background:#2a3644}.term .tb span{margin-left:10px;font-size:11px;color:var(--mute)}
+.term .bd{padding:20px 22px}
+.term .bd div{white-space:pre-wrap;word-break:break-word}
+.term a{color:var(--teal);border-bottom:1px dashed var(--teal)}.term a:hover{background:rgba(57,208,196,.15)}
+.c{color:var(--mute)}
+footer{margin-top:90px;border-top:1px solid var(--line);padding:24px 0 40px;font:400 12px var(--mono);color:var(--mute);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}h1 .w{opacity:1;transform:none}}
 </style>
 </head>
 <body>
-<div id="bar"></div>
+<div id="prog"></div><div id="scan"></div>
 
-<nav><div class="navbox">
-  <div class="logo">A</div>
-  <div class="who">Abijit <span>/ Blue Teamer</span></div>
-  <div class="links">
-    <a href="#work"><i>01</i>Work</a><a href="#about"><i>02</i>About</a><a href="#principles"><i>03</i>Principles</a><a href="#record"><i>04</i>Record</a><a href="#contact"><i>05</i>Contact</a>
-  </div>
-</div></nav>
+<header class="bar"><div class="wrap">
+  <span class="brand">abijit@sentinel<i>:~$</i></span>
+  <span class="live"><b></b>on shift</span>
+  <nav><a href="#work">work</a><a href="#lab">detection-lab</a><a href="#rules">rules</a><a href="#stack">stack</a><a href="#contact">contact</a></nav>
+</div></header>
 
 <main>
-<div class="wrap hero">
-  <div class="radar" id="radar">
-    <svg viewBox="0 0 400 400" fill="none" stroke="#111" stroke-width="1">
-      <circle cx="200" cy="200" r="196" opacity=".7"/><circle cx="200" cy="200" r="150" opacity=".5"/>
-      <circle cx="200" cy="200" r="104" opacity=".5"/><circle cx="200" cy="200" r="58" opacity=".5"/>
-      <path d="M200 4V396M4 200H396" opacity=".35"/><path d="M62 62L338 338M338 62L62 338" opacity=".2"/>
-      <defs><linearGradient id="sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c6f24e" stop-opacity="0"/><stop offset="1" stop-color="#c6f24e" stop-opacity=".9"/></linearGradient></defs>
-      <g class="sweep"><path d="M200 200L396 200A196 196 0 0 0 340 60Z" transform="rotate(-24 200 200)" fill="url(#sw)" stroke="none"/><path d="M200 200H396" stroke="#111"/></g>
-      <g fill="#111" stroke="none"><circle class="blip" cx="290" cy="130" r="4" style="animation-delay:1.6s"/><circle class="blip" cx="130" cy="290" r="4" style="animation-delay:4s"/><circle class="blip" cx="300" cy="270" r="4" style="animation-delay:.4s"/></g>
-    </svg>
+<div class="hero">
+  <canvas id="net"></canvas>
+  <div class="wrap">
+    <div class="prompt">$ whoami <span id="typed"></span><span class="cur"></span></div>
+    <h1 id="h1">Catching what looks <em>normal</em>.</h1>
+    <p class="lede">Third-year CS student on the defensive side. I build detection systems and try to <b>prove they weren't just noise</b> — detection engineering, SIEM operations, endpoint telemetry.</p>
+    <div class="cta"><a class="btn pri" href="#work">open incidents →</a><a class="btn" href="https://github.com/abijit2626">github ↗</a><a class="btn" href="#contact">contact</a></div>
   </div>
-
-  <div class="top mono"><span><i class="dot"></i>Operating / 3rd-year CS student</span><span>Working record / Detection</span></div>
-  <p class="sub">Detection engineering · SIEM operations · Endpoint telemetry</p>
-  <h1 class="big"><span class="ln"><span>DETECTION <em class="x">×</em></span></span><span class="ln"><span>ENGINEER</span></span></h1>
-  <div class="row">
-    <p>Abijit is a computer science student building small detection systems that separate real attacker behaviour from the noise of ordinary software.</p>
-    <a class="btn dark" href="#work">View work <span>↘</span></a>
-    <a class="btn" href="https://github.com/abijit2626">GitHub <span>↗</span></a>
-  </div>
-  <div class="meta mono"><span>Discipline<b>Detection / SOC</b></span><span>Mode<b>Observe / Correlate / Explain</b></span><span>Open to<b>Placements 2027–2028</b></span></div>
+  <div class="status" id="status"><div class="t"><span>detector.log</span><span>live</span></div><div class="ln ok">✓ baseline established</div></div>
 </div>
 
-<div class="marq"><span class="tag mono">Instruments</span>
-  <div class="track" id="track">
-    <span>Python</span><span>Go</span><span>Bash</span><span>Wazuh</span><span>Sysmon</span><span>MITRE ATT&amp;CK</span><span>Docker</span><span>Flask</span><span>scikit-learn</span><span>SQLite</span><span>nmap</span><span>Burp</span>
+<div class="ticker"><div class="tick" id="tick"></div></div>
+
+<div class="wrap">
+  <div class="stats rv" id="stats">
+    <div><b data-n="5210">0</b><span>labelled PE samples (ClaMP)</span></div>
+    <div><b data-n="67">0</b><span>PE-header features</span></div>
+    <div><b data-n="38">0</b><span>startup self-checks, CTF</span></div>
+    <div><b data-n="18">0</b><span>CTF challenges built</span></div>
   </div>
+
+  <section id="work">
+    <div class="sh rv">01 / INCIDENT QUEUE</div>
+    <h2 class="rv">Systems built to stay quiet until it matters.</h2>
+    <p class="sub rv">Each ticket is a project. Click one to open it, including the restraint built into it.</p>
+    <div class="tickets" id="tickets">
+
+      <article class="tk rv open"><div class="tk-h"><span class="id">INC-001</span><h3>ambit<small>Go · Wazuh · MCP</small></h3><span class="sev s-a">ACTIVE</span><span class="chev">›</span></div>
+        <div class="tk-b"><div><div class="tk-in"><div>
+          <p>A provenance and control plane for Claude Code agents and the MCP servers they connect to, built in response to documented attacks: <b>s1ngularity</b> and <b>GTG-1002</b>.</p>
+          <p>An endpoint daemon holds everything needing a live verdict; Wazuh is the fleet plane and never sits in the synchronous path.</p>
+          <div class="quiet"><span>WHY IT STAYS QUIET</span>M0 observation layer answers <code>{}</code> to every hook, so no session behaves differently because of it.</div>
+        </div><div><div class="kv">status <b>M0 complete, tested</b><br>later milestones <b>design only</b></div><div class="tags"><span>Go</span><span>Wazuh</span><span>MCP</span></div><a class="go" href="https://github.com/abijit2626/ambit">view repo →</a></div></div></div></div></article>
+
+      <article class="tk rv"><div class="tk-h"><span class="id">INC-002</span><h3>keyboard-hook-behavioral-detector<small>Python · Windows · scikit-learn</small></h3><span class="sev s-b">DETECTOR</span><span class="chev">›</span></div>
+        <div class="tk-b"><div><div class="tk-in"><div>
+          <p>Finds processes <i>capable</i> of keylogging and scores how suspicious they look over time. It never hooks the keyboard or captures keystrokes.</p>
+          <p>Three gated layers: a rule engine with persistence and risk decay, a RandomForest on ClaMP, and an import-table fingerprint mapped to MITRE ATT&amp;CK.</p>
+          <div class="quiet"><span>WHY IT STAYS QUIET</span>ML can only amplify a rule that already fired. Allowlisted processes score zero. Try it in the lab below.</div>
+        </div><div><div class="kv">model <b>RandomForest</b><br>data <b>5,210 samples</b><br>dashboard <b>localhost only</b></div><div class="tags"><span>Python</span><span>Flask</span><span>T1056.001</span></div><a class="go" href="https://github.com/abijit2626/keyboard-hook-behavioral-detector">view repo →</a></div></div></div></div></article>
+
+      <article class="tk rv"><div class="tk-h"><span class="id">INC-003</span><h3>SIEM-Project<small>Python, standard library only</small></h3><span class="sev s-b">CORRELATION</span><span class="chev">›</span></div>
+        <div class="tk-b"><div><div class="tk-in"><div>
+          <p>A stateful correlation engine that raises an incident only when a full chain appears in order inside a time window: access anomaly → C2 beacon → objective.</p>
+          <p>Beacons are found by interval-variance analysis, not ML, so each flag can be walked through by hand.</p>
+          <div class="quiet"><span>WHY IT STAYS QUIET</span>Beacon alone: nothing. Access plus objective with no beacon: nothing. The tests assert the negatives as hard as the positives.</div>
+        </div><div><div class="kv">deps <b>none</b><br>state <b>per entity, expiring</b></div><div class="tags"><span>Python</span><span>Correlation</span></div><a class="go" href="https://github.com/abijit2626/SIEM-Project">view repo →</a></div></div></div></div></article>
+
+      <article class="tk rv"><div class="tk-h"><span class="id">INC-004</span><h3>wazuh-investigations<small>Python · Wazuh · Sysmon</small></h3><span class="sev s-c">LAB</span><span class="chev">›</span></div>
+        <div class="tk-b"><div><div class="tk-in"><div>
+          <p>A SOC home lab with both sides in one repo: a stateful, MITRE-mapped adversary telemetry generator, and the investigations from pointing Wazuh at it.</p>
+          <p>Includes the detections that <i>didn't</i> fire — scheduled tasks, suspicious PowerShell, plaintext credentials on the command line — each with the rule needed to close the gap.</p>
+        </div><div><div class="kv">chain <b>T1110.001 → T1003.001</b><br>output <b>ndjson → Wazuh</b></div><div class="tags"><span>Wazuh</span><span>Sysmon</span><span>ATT&amp;CK</span></div><a class="go" href="https://github.com/abijit2626/wazuh-investigations">view repo →</a></div></div></div></div></article>
+
+      <article class="tk rv"><div class="tk-h"><span class="id">INC-005</span><h3>ctf-workshop<small>Python · Flask · Docker</small></h3><span class="sev s-c">TEACHING</span><span class="chev">›</span></div>
+        <div class="tk-b"><div><div class="tk-in"><div>
+          <p>An 18-challenge, one-day CTF I built and run for the TinkerHub study jam for students with no security background. Three rounds, fully offline, one command to bring up.</p>
+          <div class="quiet"><span>WHY IT STAYS QUIET</span>38 automated checks validate all 18 flags at startup, and it refuses to print “ready” if any fail.</div>
+        </div><div><div class="kv">rounds <b>recon · web · stego</b><br>launch <b>./event.sh up</b></div><div class="tags"><span>Flask</span><span>Docker</span></div><a class="go" href="https://github.com/abijit2626/ctf-workshop">view repo →</a></div></div></div></div></article>
+
+      <article class="tk rv"><div class="tk-h"><span class="id">INC-006</span><h3>personal-recon-tool “Ghost”<small>Bash</small></h3><span class="sev s-c">TOOLING</span><span class="chev">›</span></div>
+        <div class="tk-b"><div><div class="tk-in"><div>
+          <p>A modular recon framework for CTFs, HTB and authorised engagements: ten pipeline stages from port scan to SSL/TLS to screenshots, ending in a self-contained HTML report.</p>
+          <p>Tools are probed before use, every command runs under a timeout, and output never overwrites.</p>
+        </div><div><div class="tags"><span>Bash</span><span>nmap</span></div><a class="go" href="https://github.com/abijit2626/personal-recon-tool">view repo →</a></div></div></div></div></article>
+
+      <article class="tk rv"><div class="tk-h"><span class="id">INC-007</span><h3>hackerone-ctf-writeups<small>Hacker101</small></h3><span class="sev s-c">WRITEUPS</span><span class="chev">›</span></div>
+        <div class="tk-b"><div><div class="tk-in"><div>
+          <p>Solved-and-explained Hacker101 challenges: Micro-CMS v1 and v2, A Little Something to Get You Started, and Encrypted Pastebin. The padding-oracle work became a live instructor demo at the study jam.</p>
+        </div><div><a class="go" href="https://github.com/abijit2626/hackerone-ctf-writeups">view repo →</a></div></div></div></div></article>
+    </div>
+  </section>
+
+  <section id="lab">
+    <div class="sh rv">02 / DETECTION LAB</div>
+    <h2 class="rv">Toggle the signals. Watch it explain itself.</h2>
+    <p class="sub rv">A small illustration of the gating logic in my keyboard-hook detector. Scores are illustrative, not real model output.</p>
+    <div class="lab rv">
+      <div>
+        <h4>SIGNALS</h4><p class="h">Flip these on and off.</p>
+        <label class="sw"><input type="checkbox" id="s-cap"><i></i><span>Hook capability present<small>process has a keyboard hook installed</small></span></label>
+        <label class="sw"><input type="checkbox" id="s-per"><i></i><span>Persisted over time<small>behaviour survives across observations</small></span></label>
+        <label class="sw"><input type="checkbox" id="s-imp"><i></i><span>Import fingerprint matches<small>API categories map to ATT&amp;CK</small></span></label>
+        <label class="sw"><input type="checkbox" id="s-ml"><i></i><span>Model says “malicious”<small>RandomForest output</small></span></label>
+        <label class="sw" style="border:0"><input type="checkbox" id="s-allow"><i></i><span>Process is allowlisted<small>known-good software</small></span></label>
+      </div>
+      <div>
+        <h4>VERDICT</h4>
+        <div class="score" id="score">0</div>
+        <div class="gauge"><b id="gauge"></b></div>
+        <div class="verdict" id="verdict">QUIET</div>
+        <ul class="why" id="why"></ul>
+        <div class="note">Try: turn on only the model. Nothing happens, and that’s the point.</div>
+      </div>
+    </div>
+
+    <div class="chain rv" id="chain">
+      <div class="stage"><div class="n">STAGE 1</div><h5>Access anomaly</h5><p>Unusual login pattern for an entity.</p></div>
+      <div class="stage"><div class="n">STAGE 2</div><h5>C2 beacon</h5><p>Low interval variance: regular, machine-like check-ins.</p></div>
+      <div class="stage"><div class="n">STAGE 3</div><h5>Objective behaviour</h5><p>Actions that serve the attacker’s goal.</p></div>
+      <div class="stage"><div class="n">RESULT</div><h5>One incident</h5><p>Raised only after all three, in order, in the window.</p></div>
+    </div>
+    <div class="rulecap rv">↑ the attack-chain correlation from INC-003. Scroll to trigger it.</div>
+  </section>
+
+  <section id="rules">
+    <div class="sh rv">03 / RULES OF ENGAGEMENT</div>
+    <h2 class="rv">Four rules I keep arriving at independently.</h2>
+    <p class="sub rv">Across unrelated projects, the same ideas keep coming back.</p>
+    <div class="rules">
+      <div class="rule rv"><span class="n">01</span><h5>Capability is not intent.</h5><p>Trusted software installs keyboard hooks, opens raw sockets and reads the clipboard. Flagging capability alone builds a tool analysts learn to ignore.</p></div>
+      <div class="rule rv"><span class="n">02</span><h5>Persistence amplifies risk.</h5><p>A single observation is a data point. Behaviour that survives over time is a signal.</p></div>
+      <div class="rule rv"><span class="n">03</span><h5>Every signal explains itself.</h5><p>If I can’t say why something scored what it did, nobody can triage it. A model score never crosses a threshold on its own.</p></div>
+      <div class="rule rv"><span class="n">04</span><h5>Correlation beats volume.</h5><p>One high-confidence incident from a complete attack chain is worth more than a thousand isolated alerts.</p></div>
+    </div>
+  </section>
+
+  <section id="stack">
+    <div class="sh rv">04 / TOOLKIT</div>
+    <h2 class="rv">What I work with.</h2>
+    <div style="height:24px"></div>
+    <div class="grp rv"><h6>LANGUAGES</h6><div class="stack"><span>Python</span><span>Bash</span><span>Go</span><span>C++</span><span>Java</span></div></div>
+    <div class="grp rv"><h6>DETECTION &amp; SIEM</h6><div class="stack"><span>Wazuh</span><span>Sysmon</span><span>MITRE ATT&amp;CK</span><span>Gap analysis</span><span>Correlation engines</span></div></div>
+    <div class="grp rv"><h6>WINDOWS &amp; ENDPOINT</h6><div class="stack"><span>PE format analysis</span><span>Import-table fingerprinting</span><span>Windows internals</span><span>Process telemetry</span></div></div>
+    <div class="grp rv"><h6>OFFENSIVE, FOR DEFENSIVE ENDS</h6><div class="stack"><span>nmap</span><span>Burp</span><span>Service enumeration</span><span>Web exploitation</span><span>Steganography</span></div></div>
+    <div class="grp rv"><h6>BUILD &amp; INFRA</h6><div class="stack"><span>Docker</span><span>Flask</span><span>scikit-learn</span><span>SQLite</span><span>Git</span></div></div>
+  </section>
+
+  <section id="contact">
+    <div class="sh rv">05 / CONTACT</div>
+    <h2 class="rv">Open to work, open to feedback.</h2>
+    <p class="sub rv">Looking for SOC analyst and detection engineering roles through final-year placements (2027–2028), open source security projects, and anyone who wants to be a second pair of eyes on detection work.</p>
+    <div class="term rv"><div class="tb"><i></i><i></i><i></i><span>~/contact</span></div><div class="bd">
+<div><span class="c">$</span> cat currently.txt</div>
+<div class="c">- extending the Wazuh lab into detection-as-code (Sigma, Atomic Red Team, CI-validated)
+- building ambit toward telling AI-agent activity from human-driven attacks
+- running the TinkerHub security study jam</div>
+<div><span class="c">$</span> mail <a href="mailto:Abijit2626@gmail.com">Abijit2626@gmail.com</a></div>
+<div><span class="c">$</span> open <a href="https://github.com/abijit2626">github.com/abijit2626</a></div>
+    </div></div>
+  </section>
+  <footer><span>© 2026 Abijit</span><span>detection · SOC · blue team</span></footer>
 </div>
-
-<section id="work"><div class="wrap">
-  <div class="head rv"><div><div class="num">01</div><div class="lab mono">Selected work</div></div>
-    <div><h2>Detection systems that explain themselves.</h2><p>Independent attempts at one hard problem: telling real attacker behaviour from software that merely looks suspicious. Hover a card to pull it off the shelf.</p></div></div>
-
-  <div class="shelf rv">
-    <div class="bar mono"><span>Curated objects / 05</span><span>Shelf mode / Fanned</span></div>
-    <div class="stage">
-      <a class="card c1" href="https://github.com/abijit2626/ambit"><div class="n"><span>01</span><span class="arr">↗</span></div><div class="tg">Go / Wazuh / MCP</div><h3>ambit</h3><p>Provenance and control plane for Claude Code agents and MCP servers.</p><div class="chips"><span class="chip">Go</span><span class="chip">Wazuh</span><span class="chip">MCP</span></div></a>
-      <a class="card c2" href="https://github.com/abijit2626/keyboard-hook-behavioral-detector"><div class="n"><span>02</span><span class="arr">↗</span></div><div class="tg">Python / Windows / ML</div><h3>Keyboard Hook Detector</h3><p>Scores processes capable of keylogging. ML can amplify a rule, never create one.</p><div class="chips"><span class="chip">Python</span><span class="chip">RF</span><span class="chip">ATT&amp;CK</span></div></a>
-      <a class="card c3" href="https://github.com/abijit2626/SIEM-Project"><div class="n"><span>03</span><span class="arr">↗</span></div><div class="tg">Correlation / C2 / Python</div><h3>Attack Chain SIEM</h3><p>Raises an incident only when the whole chain appears in order, in a window.</p><div class="chips"><span class="chip">stdlib</span><span class="chip">Beacons</span></div></a>
-      <a class="card c4" href="https://github.com/abijit2626/wazuh-investigations"><div class="n"><span>04</span><span class="arr">↗</span></div><div class="tg">Wazuh / Sysmon / MITRE</div><h3>Wazuh Investigations</h3><p>Adversary simulator plus write-ups of the detections that didn't fire.</p><div class="chips"><span class="chip">Wazuh</span><span class="chip">Sysmon</span></div></a>
-      <a class="card c5" href="https://github.com/abijit2626/ctf-workshop"><div class="n"><span>05</span><span class="arr">↗</span></div><div class="tg">Flask / Docker / Teaching</div><h3>CTF Workshop</h3><p>An 18-challenge offline CTF for beginners, with 38 self-tests at startup.</p><div class="chips"><span class="chip">Flask</span><span class="chip">Docker</span></div></a>
-      <a class="card c6" href="https://github.com/abijit2626?tab=repositories"><div class="n"><span>/ More</span><span class="arr">↗</span></div><div class="tg">GitHub / abijit2626</div><h3>Explore more work</h3><p>Recon tooling, CTF write-ups and work in progress.</p><div class="chips"><span class="chip">All repos</span></div></a>
-    </div>
-  </div>
-
-  <div class="also rv">
-    <a href="https://github.com/abijit2626/personal-recon-tool"><span class="mono">06</span><span><b>Ghost</b> <small>— modular recon framework, ten pipeline stages, one HTML report</small></span><span class="mono">Bash ↗</span></a>
-    <a href="https://github.com/abijit2626/hackerone-ctf-writeups"><span class="mono">07</span><span><b>Hacker101 writeups</b> <small>— Micro-CMS, Encrypted Pastebin padding oracle and more</small></span><span class="mono">Writeups ↗</span></a>
-  </div>
-</div></section>
-
-<section id="about"><div class="wrap">
-  <div class="head rv"><div><div class="num">02</div><div class="lab mono">About / Profile</div></div>
-    <div><h2>Learning the defensive side from underneath the dashboard.</h2></div></div>
-  <div class="about">
-    <div class="rv">
-      <span class="pill mono">Profile / 01</span>
-      <p class="lead">I'm <mark>Abijit</mark>, a third-year CS student who wants to know what counts as a signal, when it's allowed to fire, and why most of them shouldn't.</p>
-      <p>I work on detection engineering, SIEM operations and endpoint telemetry. Outside of that: CTFs, a Wazuh home lab, and a security study jam for students at my college who have never touched this before.</p>
-    </div>
-    <dl class="kv rv" style="margin:0">
-      <div><span class="k mono">Current focus</span><span class="v">Detection-as-code with Sigma and Atomic Red Team, and ambit's agent telemetry.</span></div>
-      <div><span class="k mono">Studying</span><span class="v">Third-year computer science.</span></div>
-      <div><span class="k mono">Working mode</span><span class="v">Python, Bash, Go, Wazuh, Sysmon, nmap, Burp, Docker and Windows internals.</span></div>
-      <div><span class="k mono">Looking for</span><span class="v">SOC analyst and detection engineering roles via final-year placements, 2027–2028.</span></div>
-    </dl>
-  </div>
-</div></section>
-
-<section id="principles"><div class="wrap">
-  <div class="head rv"><div><div class="num">03</div><div class="lab mono">Principles / Field rules</div></div>
-    <div><h2>Rules I keep arriving at independently.</h2><p>Four ideas that show up across unrelated projects, each one the reason something in the work above stays quiet.</p></div></div>
-  <div class="list rv">
-    <div class="art"><span class="mono">Rulebook / 04</span><div class="big">4</div>
-      <svg viewBox="0 0 200 200" fill="none" stroke="#c6f24e"><circle cx="100" cy="100" r="98"/><circle cx="100" cy="100" r="66"/><circle cx="100" cy="100" r="34"/></svg></div>
-    <div class="rows">
-      <div><span class="mono">01</span><div><h3>Capability is not intent.</h3><p>Trusted software installs keyboard hooks and reads the clipboard. Flagging capability alone builds a tool analysts learn to ignore.</p></div></div>
-      <div><span class="mono">02</span><div><h3>Persistence amplifies risk.</h3><p>A single observation is a data point. Behaviour that survives over time is a signal.</p></div></div>
-      <div><span class="mono">03</span><div><h3>Every signal explains itself.</h3><p>If I can't say why it scored what it did, nobody can triage it. A model score only amplifies a rule that already fired.</p></div></div>
-      <div><span class="mono">04</span><div><h3>Correlation beats volume.</h3><p>One incident from a complete attack chain is worth more than a thousand isolated alerts.</p></div></div>
-    </div>
-  </div>
-</div></section>
-
-<section id="record"><div class="wrap">
-  <div class="head rv"><div><div class="num">04</div><div class="lab mono">Experience / Record</div></div>
-    <div><h2>Building, breaking, and teaching.</h2></div></div>
-  <div class="tl rv">
-    <div><span class="mono">Ongoing</span><h3>TinkerHub security study jam</h3><p>Design and run a one-day CTF for students with no security background: 18 challenges, three rounds, fully offline, live instructor demos.</p></div>
-    <div><span class="mono">Home lab</span><h3>Wazuh SOC lab</h3><p>A stateful adversary simulator feeding Wazuh, with triage, false-positive root causes and detection-gap write-ups.</p></div>
-    <div><span class="mono">Competitions</span><h3>Hacker101 &amp; HTB</h3><p>CTF practice on web exploitation, padding oracles and service enumeration, documented as write-ups.</p></div>
-  </div>
-</div></section>
-
-<section id="contact" class="contact"><div class="wrap">
-  <div class="head rv"><div><div class="num">05</div><div class="lab mono">Contact</div></div>
-    <div><h2>Second pair of eyes wanted?</h2><p>Working on detection engineering, SIEM tuning or endpoint telemetry, or hiring for 2027–2028? Say hello.</p></div></div>
-  <a class="mail rv" href="mailto:Abijit2626@gmail.com">Abijit2626<wbr>@gmail.com</a>
-  <a class="btn dark" href="https://github.com/abijit2626">GitHub <span>↗</span></a>
-</div></section>
 </main>
-
-<div class="wrap"><footer class="mono"><span>© 2026 Abijit</span><span>Detection / SOC / Blue team</span></footer></div>
 
 <script>
 (function(){
-  var t=document.getElementById('track');t.innerHTML+=t.innerHTML;
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
-  document.querySelectorAll('.rv').forEach(function(el){io.observe(el)});
-  var bar=document.getElementById('bar'),radar=document.getElementById('radar');
-  addEventListener('scroll',function(){var h=document.documentElement;bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
-  addEventListener('mousemove',function(e){var x=(e.clientX/innerWidth-.5)*24,y=(e.clientY/innerHeight-.5)*24;radar.style.transform='translate('+x+'px,'+y+'px)'});
+var $=function(s,c){return (c||document).querySelector(s)},$$=function(s,c){return [].slice.call((c||document).querySelectorAll(s))};
+var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* headline words */
+var h1=$('#h1'),i=0;
+(function split(n){[].slice.call(n.childNodes).forEach(function(c){
+  if(c.nodeType===3){var f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(function(t){if(!t)return;if(/^\s+$/.test(t)){f.appendChild(document.createTextNode(t))}else{var s=document.createElement('span');s.className='w';s.style.animationDelay=(0.15+i++*0.12)+'s';s.textContent=t;f.appendChild(s)}});n.replaceChild(f,c)}
+  else if(c.nodeType===1){c.classList.add('w');c.style.animationDelay=(0.15+i++*0.12)+'s'}})})(h1);
+
+/* typed whoami */
+var txt='detection engineer · blue team',ti=0,ty=$('#typed');
+(function t(){if(ti<=txt.length){ty.textContent=' → '+txt.slice(0,ti++);setTimeout(t,reduce?0:45)}})();
+
+/* clock */
+
+/* ticker */
+var ev=[
+ ['ok','auth','success','user=svc-backup','host=WS-04'],['a','net','egress','dst=203.0.113.9:443','interval=60.1s'],['ok','proc','spawn','powershell.exe','parent=explorer'],
+ ['a','reg','runkey','HKCU\\..\\Run','T1547.001'],['ok','dns','query','update.vendor.example'],['r','auth','fail x14','user=admin','src=198.51.100.7'],
+ ['ok','file','write','C:\\Users\\..\\report.docx'],['a','net','egress','dst=203.0.113.9:443','interval=59.9s'],['r','lsass','handle','proc=unknown.exe','T1003.001'],['ok','auth','success','user=abijit']];
+var tk=$('#tick'),h='';
+ev.forEach(function(e,k){h+='<span class="'+e[0]+'">'+String(k*7+100).padStart(4,'0')+' <b>'+e[1]+'</b> '+e.slice(2).join(' ')+'</span>'});
+tk.innerHTML=h+h;
+
+/* scroll reveal + progress + stats */
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);
+  if(e.target.id==='stats')countUp();if(e.target.id==='chain')e.target.classList.add('go')}})},{threshold:.15});
+$$('.rv').forEach(function(el){io.observe(el)});
+addEventListener('scroll',function(){var d=document.documentElement;$('#prog').style.width=d.scrollTop/(d.scrollHeight-d.clientHeight)*100+'%'},{passive:true});
+function countUp(){$$('#stats b').forEach(function(b){var n=+b.dataset.n,s=performance.now();(function f(t){var p=Math.min(1,(t-s)/1400),e=1-Math.pow(1-p,3);b.textContent=Math.round(n*e).toLocaleString();if(p<1)requestAnimationFrame(f)})(s)})}
+
+/* tickets */
+$$('.tk').forEach(function(t){
+  $('.tk-h',t).addEventListener('click',function(){var was=t.classList.contains('open');$$('.tk').forEach(function(x){x.classList.remove('open')});if(!was)t.classList.add('open')});
+  t.addEventListener('pointermove',function(e){var r=t.getBoundingClientRect();t.style.setProperty('--mx',(e.clientX-r.left)+'px');t.style.setProperty('--my',(e.clientY-r.top)+'px')});
+});
+
+/* detection lab */
+var ids=['cap','per','imp','ml','allow'],el={};ids.forEach(function(k){el[k]=$('#s-'+k);el[k].addEventListener('change',calc)});
+function calc(){
+  var why=[],s=0,cap=el.cap.checked;
+  if(el.allow.checked){s=0;why.push('allowlisted process → score forced to 0')}
+  else if(!cap){
+    why.push('no hook capability → no rule can fire');
+    if(el.per.checked||el.imp.checked||el.ml.checked)why.push('other signals present but nothing to amplify → ignored');
+    if(el.ml.checked)why.push('model output alone never creates an alert');
+  }else{
+    s=30;why.push('+30 hook capability observed (rule fired)');
+    if(el.per.checked){s+=25;why.push('+25 persisted over time (amplifies)')}
+    if(el.imp.checked){s+=15;why.push('+15 import fingerprint matches ATT&CK')}
+    if(el.ml.checked){s+=20;why.push('+20 model agrees (amplifies a fired rule)')}
+  }
+  var v=s>=60?['ALERT','var(--red)']:s>=30?['WATCH','var(--amber)']:['QUIET','var(--teal)'];
+  var sc=$('#score');sc.textContent=s;sc.style.color=v[1];
+  var g=$('#gauge');g.style.width=s+'%';g.style.background=v[1];g.style.color=v[1];
+  var vd=$('#verdict');vd.textContent=v[0];vd.style.color=v[1];
+  $('#why').innerHTML=why.map(function(w,k){return '<li style="animation-delay:'+k*60+'ms">'+w+'</li>'}).join('');
+}
+calc();
+
+/* network canvas */
+var cv=$('#net'),cx=cv.getContext('2d'),W,H,N=[],mouse={x:-999,y:-999},dpr=Math.min(2,devicePixelRatio||1);
+function size(){var r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0);
+  var n=Math.round(Math.min(70,Math.max(26,W*H/16000)));N=[];for(var k=0;k<n;k++)N.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,st:0,fl:0});}
+size();addEventListener('resize',size);
+cv.parentNode.addEventListener('pointermove',function(e){var r=cv.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
+cv.parentNode.addEventListener('pointerleave',function(){mouse.x=mouse.y=-999});
+var COL={0:'57,208,196',1:'245,179,66',2:'255,93,108',3:'121,192,255'};
+var script=[],st=$('#status'),logs=[];
+function log(cls,t){logs.push('<div class="ln '+cls+'">'+t+'</div>');if(logs.length>4)logs.shift();st.innerHTML='<div class="t"><span>detector.log</span><span>'+new Date().toISOString().slice(11,19)+'Z</span></div>'+logs.join('')}
+var chainNodes=[],phase=-1,beacons=[];
+function pick(){var idx=[];while(idx.length<3){var k=Math.floor(Math.random()*N.length);if(idx.indexOf(k)<0)idx.push(k)}return idx.map(function(k){return N[k]})}
+function run(){
+  N.forEach(function(n){n.st=0;n.fl=0});beacons=[];chainNodes=pick();var a=chainNodes[0],b=chainNodes[1],c=chainNodes[2];
+  var T=[[600,function(){log('ok','✓ baseline established')}],
+   [2200,function(){a.st=1;log('warn','! access anomaly · entity-'+N.indexOf(a))}],
+   [4200,function(){b.st=1;beacons.push({from:a,to:b,t:0});log('warn','! periodic egress · variance low')}],
+   [6000,function(){log('ok','· beacon alone → no incident (waiting)')}],
+   [8200,function(){c.st=2;log('bad','✗ objective behaviour observed')}],
+   [9200,function(){[a,b,c].forEach(function(n){n.fl=1});log('bad','■ INCIDENT: full chain in window')}],
+   [13800,function(){run()}]];
+  script=T.map(function(x){return setTimeout(x[1],x[0])});
+}
+run();
+function frame(){
+  cx.clearRect(0,0,W,H);
+  for(var p=0;p<N.length;p++){var n=N[p];n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;
+    var dx=n.x-mouse.x,dy=n.y-mouse.y,d=Math.hypot(dx,dy);if(d<110){n.x+=dx/d*1.2;n.y+=dy/d*1.2}}
+  for(var i2=0;i2<N.length;i2++)for(var j=i2+1;j<N.length;j++){var A=N[i2],B=N[j],d2=Math.hypot(A.x-B.x,A.y-B.y);
+    if(d2<130){cx.strokeStyle='rgba(121,192,255,'+(0.16*(1-d2/130))+')';cx.lineWidth=1;cx.beginPath();cx.moveTo(A.x,A.y);cx.lineTo(B.x,B.y);cx.stroke()}}
+  beacons.forEach(function(bc){bc.t=(bc.t+.012)%1;cx.strokeStyle='rgba(245,179,66,.55)';cx.setLineDash([5,5]);cx.beginPath();cx.moveTo(bc.from.x,bc.from.y);cx.lineTo(bc.to.x,bc.to.y);cx.stroke();cx.setLineDash([]);
+    var x=bc.from.x+(bc.to.x-bc.from.x)*bc.t,y=bc.from.y+(bc.to.y-bc.from.y)*bc.t;cx.fillStyle='#f5b342';cx.beginPath();cx.arc(x,y,3,0,7);cx.fill()});
+  var now=performance.now();
+  N.forEach(function(n){var c=COL[n.st],r=n.st?4.5:2.4;
+    if(n.st){var pu=(now%1400)/1400;cx.strokeStyle='rgba('+c+','+(1-pu)*.7+')';cx.beginPath();cx.arc(n.x,n.y,r+pu*22,0,7);cx.stroke()}
+    if(n.fl){cx.strokeStyle='rgba(121,192,255,.9)';cx.lineWidth=1.5;cx.beginPath();cx.arc(n.x,n.y,16,0,7);cx.stroke();cx.lineWidth=1}
+    cx.fillStyle='rgba('+c+','+(n.st?1:.65)+')';cx.beginPath();cx.arc(n.x,n.y,r,0,7);cx.fill()});
+  if(!reduce)requestAnimationFrame(frame)
+}
+frame();
 })();
 </script>
 </body>
