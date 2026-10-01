@@ -7,427 +7,367 @@
 <meta name="description" content="Third-year CS student working the defensive side of security: detection engineering, SIEM operations and endpoint telemetry.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#070b10;--panel:#0d141c;--line:#1c2733;--teal:#39d0c4;--blue:#79c0ff;--amber:#f5b342;--red:#ff5d6c;--fg:#d7e2ee;--mute:#7b8a99;
-  --sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+:root{--ink:#14110f;--violet:#6c4cff;--pink:#ff4fa3;--yellow:#ffd23f;--mint:#3ee6b0;--blue:#4cc3ff;--cream:#fff4e0;--orange:#ff7a3d;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;--bw:3px;--sh:6px 6px 0 var(--ink)}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:clip}
-body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--sans);overflow-x:clip}
+body{margin:0;background:var(--cream);color:var(--ink);font:500 18px/1.5 var(--sans);overflow-x:clip}
 a{color:inherit;text-decoration:none}
-::selection{background:var(--teal);color:#001}
-.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+::selection{background:var(--ink);color:var(--yellow)}
 .mono{font-family:var(--mono)}
-#scan{position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
-#prog{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--teal),var(--blue));z-index:60;box-shadow:0 0 12px var(--teal)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px;position:relative}
+#prog{position:fixed;top:0;left:0;height:8px;width:0;background:repeating-linear-gradient(90deg,var(--pink) 0 24px,var(--yellow) 24px 48px,var(--mint) 48px 72px,var(--blue) 72px 96px);border-bottom:var(--bw) solid var(--ink);z-index:100}
+.trail{position:fixed;left:0;top:0;width:18px;height:18px;border-radius:50%;border:2px solid var(--ink);pointer-events:none;z-index:90;mix-blend-mode:normal;transition:opacity .4s}
+@media(pointer:coarse){.trail{display:none}}
 
-/* top bar */
-header.bar{position:sticky;top:0;z-index:40;background:rgba(7,11,16,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-header.bar .wrap{display:flex;align-items:center;gap:22px;height:54px;font:500 12px var(--mono)}
-.brand{color:var(--teal);font-weight:700}.brand i{font-style:normal;color:var(--mute);font-weight:400}
-.live{display:flex;align-items:center;gap:8px;color:var(--mute)}
-.live b{width:8px;height:8px;border-radius:50%;background:var(--teal);animation:pulse 1.6s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(57,208,196,.6)}100%{box-shadow:0 0 0 10px rgba(57,208,196,0)}}
-header.bar nav{margin-left:auto;display:flex;gap:20px}
-header.bar nav a{color:var(--mute);transition:color .2s}header.bar nav a:hover{color:var(--teal)}
-@media(max-width:700px){header.bar nav{display:none}.live{margin-left:auto}}
+/* nav */
+nav{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:80;display:flex;gap:6px;align-items:center;background:#fff;border:var(--bw) solid var(--ink);border-radius:99px;padding:6px;box-shadow:var(--sh);max-width:calc(100% - 24px)}
+nav .logo{background:var(--ink);color:var(--yellow);font:800 16px var(--sans);padding:8px 16px;border-radius:99px}
+nav a.l{padding:8px 14px;border-radius:99px;font-weight:800;font-size:15px;transition:transform .25s cubic-bezier(.3,1.8,.5,1),background .2s}
+nav a.l:hover{background:var(--yellow);transform:translateY(-3px) rotate(-3deg)}
+@media(max-width:720px){nav a.l{display:none}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;background:#fff;border:var(--bw) solid var(--ink);border-radius:99px;padding:14px 26px;font:800 18px var(--sans);box-shadow:var(--sh);transition:transform .15s,box-shadow .15s,background .2s;cursor:pointer;will-change:transform;color:var(--ink)}
+.btn:hover{background:var(--yellow);box-shadow:9px 9px 0 var(--ink)}
+.btn:active{transform:translate(5px,5px)!important;box-shadow:1px 1px 0 var(--ink)}
+.btn.dark{background:var(--ink);color:#fff}.btn.dark:hover{color:var(--ink)}.btn.dark:hover{background:var(--pink);color:var(--ink)}
+
+/* section edges */
+section{position:relative}
+.zz::before{content:"";position:absolute;left:0;right:0;top:-1px;height:18px;transform:translateY(-100%);
+  background:linear-gradient(135deg,var(--bgc) 25%,transparent 25%) -18px 0,linear-gradient(225deg,var(--bgc) 25%,transparent 25%) -18px 0;background-size:36px 36px;background-repeat:repeat-x}
+.rv{opacity:0;transform:translateY(60px) scale(.94) rotate(-1.5deg);transition:opacity .5s,transform .8s cubic-bezier(.3,1.5,.5,1)}
+.rv.in{opacity:1;transform:none}
+h2{font-size:clamp(2.6rem,8vw,6.4rem);line-height:.92;letter-spacing:-.045em;font-weight:800;margin:0 0 16px;text-transform:uppercase}
+h2 .hl{background:var(--ink);color:var(--yellow);padding:0 .14em;display:inline-block;transform:rotate(-2deg)}
+.kick{display:inline-block;font:700 13px var(--mono);background:var(--ink);color:#fff;padding:6px 14px;border-radius:99px;margin-bottom:18px;letter-spacing:.06em}
+.sub{max-width:560px;font-size:20px;margin:0 0 48px}
 
 /* hero */
-.hero{position:relative;min-height:calc(100vh - 54px);display:flex;align-items:center;overflow:hidden}
-#net{position:absolute;inset:0;width:100%;height:100%}
-.hero .wrap{position:relative;z-index:2;padding-top:60px;padding-bottom:60px}
-.prompt{font:500 13px var(--mono);color:var(--teal);margin-bottom:18px}
-.prompt .cur{display:inline-block;width:9px;height:1.05em;background:var(--teal);vertical-align:-2px;margin-left:3px;animation:blink 1s steps(2) infinite}
-@keyframes blink{50%{opacity:0}}
-h1{font-size:clamp(2.4rem,7vw,5.6rem);line-height:1;letter-spacing:-.04em;font-weight:800;margin:0 0 22px;max-width:14ch}
-h1 em{font-style:normal;background:linear-gradient(90deg,var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
-h1 .w{display:inline-block;opacity:0;transform:translateY(24px) rotateX(40deg);animation:w .8s cubic-bezier(.2,.8,.2,1) forwards}
-@keyframes w{to{opacity:1;transform:none}}
-.lede{font-size:clamp(1.05rem,2vw,1.3rem);color:var(--mute);max-width:560px;margin:0 0 30px}
-.lede b{color:var(--fg);font-weight:500}
-.cta{display:flex;gap:12px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 20px;border:1px solid var(--line);background:var(--panel);font:500 13px var(--mono);border-radius:6px;transition:.25s;position:relative;overflow:hidden}
-.btn:hover{border-color:var(--teal);color:var(--teal);box-shadow:0 0 24px rgba(57,208,196,.25);transform:translateY(-2px)}
-.btn.pri{background:var(--teal);color:#001;border-color:var(--teal);font-weight:700}
-.btn.pri:hover{color:#001;box-shadow:0 0 30px rgba(57,208,196,.5)}
-.status{position:absolute;right:20px;bottom:24px;z-index:3;width:min(340px,calc(100% - 40px));background:rgba(13,20,28,.88);border:1px solid var(--line);border-radius:8px;font:400 12px/1.7 var(--mono);padding:12px 14px;backdrop-filter:blur(6px)}
-.status .t{color:var(--mute);margin-bottom:6px;display:flex;justify-content:space-between}
-.status div.ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ok{color:var(--teal)}.warn{color:var(--amber)}.bad{color:var(--red)}
-@media(max-width:800px){.status{position:relative;right:auto;bottom:auto;margin:0 20px 24px}.hero{flex-direction:column;align-items:stretch;justify-content:center}}
+.hero{background:var(--violet);background-image:radial-gradient(rgba(255,255,255,.22) 2px,transparent 2.5px);background-size:30px 30px;min-height:100vh;padding:150px 0 90px;overflow:hidden;color:#fff;--bgc:var(--violet);animation:bgs 30s linear infinite}
+@keyframes bgs{to{background-position:300px 300px}}
+.hero .hi{font:800 clamp(1.4rem,4vw,2.4rem);letter-spacing:-.02em;display:inline-block;background:#fff;color:var(--ink);padding:6px 20px;border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:var(--sh);transform:rotate(-3deg);margin-bottom:10px;animation:wob 3.5s ease-in-out infinite}
+@keyframes wob{50%{transform:rotate(2deg) translateY(-5px)}}
+.name{font-size:clamp(4.4rem,22vw,19rem);line-height:.82;letter-spacing:-.06em;font-weight:800;margin:.04em 0 .22em;text-transform:uppercase;color:var(--yellow);-webkit-text-stroke:var(--bw) var(--ink);text-shadow:7px 7px 0 var(--ink);display:flex;flex-wrap:nowrap}
+.name span{display:inline-block;opacity:0;transform:translateY(-120%) rotate(-25deg) scale(.4);animation:drop 1s cubic-bezier(.3,1.7,.5,1) forwards;cursor:default}
+.name span.j{animation:jump .6s cubic-bezier(.3,1.9,.5,1)}
+@keyframes drop{to{opacity:1;transform:none}}
+@keyframes jump{40%{transform:translateY(-.25em) rotate(-8deg) scale(1.1)}}
+.hero p.lede{font-size:clamp(1.2rem,2.6vw,1.7rem);max-width:640px;margin:0 0 30px;font-weight:500}
+.hero p.lede mark{background:var(--ink);color:var(--mint);padding:0 8px;border-radius:6px}
+.badge{position:absolute;right:4%;top:150px;width:min(24vw,210px);aspect-ratio:1;z-index:3}
+.badge svg{width:100%;height:100%;animation:spin 14s linear infinite;overflow:visible}
+.badge .c{position:absolute;inset:26%;background:var(--pink);border:var(--bw) solid var(--ink);border-radius:50%;display:grid;place-items:center;font-size:clamp(1.2rem,3vw,2.4rem);box-shadow:4px 4px 0 var(--ink);color:var(--ink);font-weight:800}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stk{position:absolute;z-index:4;cursor:grab;touch-action:none;user-select:none}
+.stk:active{cursor:grabbing}
+.stk>div{animation:flt 5s ease-in-out infinite;animation-delay:var(--d,0s);color:var(--ink);font-weight:800;border:var(--bw) solid var(--ink);box-shadow:5px 5px 0 var(--ink)}
+@keyframes flt{50%{transform:translateY(-14px) rotate(var(--r2,6deg))}}
+.s1{right:30%;bottom:16%}.s1>div{background:var(--pink);padding:22px 20px;clip-path:polygon(50% 0,61% 14%,79% 8%,82% 27%,100% 32%,90% 50%,100% 68%,82% 73%,79% 92%,61% 86%,50% 100%,39% 86%,21% 92%,18% 73%,0 68%,10% 50%,0 32%,18% 27%,21% 8%,39% 14%);border:0;box-shadow:none;font-size:15px;text-align:center;line-height:1.1;width:128px;height:128px;display:grid;place-items:center;filter:drop-shadow(5px 5px 0 var(--ink))}
+.s2{right:8%;bottom:30%}.s2>div{background:var(--mint);padding:10px 20px;border-radius:99px;font:700 14px var(--mono);--r2:-6deg}
+.s3{left:56%;top:40%}.s3>div{background:var(--blue);padding:12px 18px;border-radius:12px;font:700 14px var(--mono);--r2:-4deg}
+.s4{right:20%;top:52%}.s4>div{background:#fff;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-size:36px}
+@media(max-width:900px){.badge{display:none}.s3,.s4{display:none}.s1{right:4%;bottom:6%;transform:scale(.7)}.s2{right:2%;bottom:22%}}
 
-/* ticker */
-.ticker{border-block:1px solid var(--line);background:var(--panel);overflow:hidden;font:400 12px var(--mono);color:var(--mute);position:relative}
-.ticker::before{content:"SIMULATED TELEMETRY";position:absolute;left:0;top:0;bottom:0;padding:0 14px;display:flex;align-items:center;background:var(--panel);color:var(--amber);z-index:2;border-right:1px solid var(--line);font-size:10px;letter-spacing:.08em}
-.tick{display:flex;gap:44px;padding:13px 0 13px 200px;width:max-content;animation:tick 60s linear infinite}
-@keyframes tick{to{transform:translateX(-50%)}}
-.tick span b{color:var(--blue);font-weight:500}.tick .r{color:var(--red)}.tick .a{color:var(--amber)}
-@media(max-width:600px){.ticker::before{display:none}.tick{padding-left:0}}
+/* bands */
+.bands{position:relative;height:210px;background:var(--cream);overflow:hidden}
+.band{position:absolute;left:-5%;width:110%;border-block:var(--bw) solid var(--ink);padding:14px 0;overflow:hidden;white-space:nowrap;font:800 clamp(1.6rem,4vw,2.6rem)/1 var(--sans);text-transform:uppercase;letter-spacing:-.02em}
+.b1{background:var(--yellow);top:40px;transform:rotate(-2.2deg)}
+.b2{background:var(--ink);color:var(--mint);top:96px;transform:rotate(2deg)}
+.band div{display:inline-block;will-change:transform}
+.band i{font-style:normal;margin:0 .5em;color:var(--pink)}
 
-/* stats */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:70px}
-.stats div{background:var(--panel);padding:26px 20px}
-.stats b{display:block;font:700 clamp(1.8rem,4vw,2.8rem)/1 var(--mono);color:var(--teal);letter-spacing:-.04em}
-.stats span{font:400 12px var(--mono);color:var(--mute)}
-@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}}
+/* work */
+.work{background:var(--cream);padding:120px 0 80px;--bgc:var(--cream)}
+.stack{position:relative;padding-bottom:20px}
+.sc{position:sticky;margin-bottom:46px;will-change:transform;transform-origin:50% 0}
+.card{--bg:#fff;display:grid;grid-template-columns:1.25fr 1fr;gap:30px;background:var(--bg);border:var(--bw) solid var(--ink);border-radius:30px;padding:36px 40px;box-shadow:10px 10px 0 var(--ink);min-height:340px;position:relative;overflow:hidden;transition:transform .2s;transform-style:preserve-3d}
+.card .glare{position:absolute;inset:0;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.55),transparent 50%);pointer-events:none;opacity:0;transition:opacity .3s}
+.card:hover .glare{opacity:1}
+.card .n{position:absolute;right:26px;top:-24px;font:800 clamp(7rem,15vw,12rem)/1 var(--sans);color:transparent;-webkit-text-stroke:var(--bw) var(--ink);opacity:.18;pointer-events:none;letter-spacing:-.06em;transition:transform .6s cubic-bezier(.3,1.6,.5,1)}
+.card:hover .n{transform:rotate(-8deg) scale(1.1)}
+.card h3{font-size:clamp(2.2rem,5vw,3.8rem);line-height:.95;letter-spacing:-.045em;margin:0 0 14px;font-weight:800;position:relative}
+.card p{margin:0 0 12px;font-size:18px;position:relative}
+.quiet{background:var(--ink);color:#fff;border-radius:16px;padding:12px 16px;font-size:15px;transform:rotate(-1deg);position:relative;margin-top:8px}
+.quiet b{font:700 11px var(--mono);color:var(--mint);display:block;letter-spacing:.08em;margin-bottom:2px}
+.card .side{display:flex;flex-direction:column;justify-content:flex-end;gap:16px;position:relative}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tags span{font:700 13px var(--mono);border:2px solid var(--ink);border-radius:99px;padding:4px 12px;background:rgba(255,255,255,.7);transition:transform .25s cubic-bezier(.3,1.9,.5,1)}
+.tags span:hover{transform:rotate(-6deg) scale(1.15);background:var(--yellow)}
+.facts{font:700 13px/1.8 var(--mono)}
+.c1{--bg:var(--mint)}.c2{--bg:var(--yellow)}.c3{--bg:var(--blue)}.c4{--bg:var(--pink)}.c5{--bg:var(--orange)}.c6{--bg:#d9ccff}.c7{--bg:#fff}
+@media(max-width:820px){.card{grid-template-columns:1fr;padding:26px 22px;min-height:0}.sc{position:relative;top:auto!important}}
 
-/* sections */
-section{padding:110px 0 0}
-.sh{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;font:500 12px var(--mono);color:var(--teal);letter-spacing:.06em}
-.sh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
-h2{font-size:clamp(1.9rem,4.4vw,3.2rem);line-height:1.08;letter-spacing:-.035em;font-weight:800;margin:0 0 14px;max-width:20ch}
-.sub{color:var(--mute);max-width:600px;margin:0 0 44px}
-.rv{opacity:0;transform:translateY(30px);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1)}
-.rv.in{opacity:1;transform:none}
-
-/* incident tickets */
-.tickets{display:grid;gap:14px}
-.tk{--mx:50%;--my:50%;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .25s,transform .25s}
-.tk::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--mx) var(--my),rgba(57,208,196,.12),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
-.tk:hover{border-color:#2b3b4c}.tk:hover::before{opacity:1}
-.tk.open{border-color:var(--teal)}
-.tk-h{display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;padding:18px 20px}
-.id{font:500 12px var(--mono);color:var(--mute)}
-.tk-h h3{margin:0;font-size:1.2rem;letter-spacing:-.02em}
-.tk-h h3 small{display:block;font:400 12px var(--mono);color:var(--mute);letter-spacing:0;margin-top:2px}
-.sev{font:700 10px var(--mono);padding:3px 8px;border-radius:4px;letter-spacing:.06em}
-.s-a{background:rgba(57,208,196,.14);color:var(--teal)}.s-b{background:rgba(121,192,255,.14);color:var(--blue)}.s-c{background:rgba(245,179,66,.14);color:var(--amber)}
-.chev{transition:transform .3s;color:var(--mute)}.tk.open .chev{transform:rotate(90deg);color:var(--teal)}
-.tk-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.2,.8,.2,1)}
-.tk.open .tk-b{grid-template-rows:1fr}
-.tk-b>div{overflow:hidden}
-.tk-in{padding:0 20px 22px;display:grid;grid-template-columns:1.4fr 1fr;gap:26px;border-top:1px dashed var(--line);padding-top:18px;margin:0 20px 0;padding-inline:0}
-.tk-in p{margin:0 0 12px;color:#aebccb;font-size:15px}
-.tk-in .quiet{border-left:2px solid var(--teal);padding:2px 0 2px 14px;color:var(--fg);font-size:14px}
-.tk-in .quiet span{display:block;font:500 10px var(--mono);color:var(--teal);letter-spacing:.08em;margin-bottom:2px}
-.kv{font:400 12px/1.9 var(--mono);color:var(--mute)}.kv b{color:var(--fg);font-weight:500}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
-.tags span{font:400 11px var(--mono);border:1px solid var(--line);padding:2px 8px;border-radius:99px;color:var(--mute)}
-.go{color:var(--teal);font:500 13px var(--mono)}.go:hover{text-decoration:underline}
-@media(max-width:760px){.tk-in{grid-template-columns:1fr}.tk-h{grid-template-columns:auto 1fr auto}.tk-h .sev{display:none}}
-
-/* lab */
-.lab{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.lab>div{background:var(--panel);padding:26px}
-.lab h4{margin:0 0 4px;font:500 12px var(--mono);color:var(--teal);letter-spacing:.06em}
-.lab p.h{margin:0 0 18px;color:var(--mute);font-size:14px}
-.sw{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;font-size:15px}
-.sw input{display:none}
-.sw i{width:38px;height:22px;border-radius:99px;background:#1a2431;position:relative;flex:none;transition:.25s}
-.sw i::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#5a6a7a;transition:.25s}
-.sw input:checked+i{background:rgba(57,208,196,.25)}.sw input:checked+i::after{left:19px;background:var(--teal);box-shadow:0 0 10px var(--teal)}
-.sw small{display:block;color:var(--mute);font-size:12px}
-.gauge{height:14px;background:#111a24;border-radius:99px;overflow:hidden;margin:6px 0 10px;position:relative}
-.gauge b{display:block;height:100%;width:0;border-radius:99px;background:var(--teal);transition:width .6s cubic-bezier(.2,.8,.2,1),background .4s;box-shadow:0 0 14px currentColor}
-.score{font:800 clamp(3rem,7vw,4.6rem)/1 var(--mono);letter-spacing:-.05em}
-.verdict{font:700 12px var(--mono);letter-spacing:.08em;margin:6px 0 16px;transition:color .3s}
-.why{list-style:none;padding:0;margin:0;font:400 12.5px/1.8 var(--mono);color:var(--mute)}
-.why li{padding-left:16px;position:relative;animation:in .35s both}
-.why li::before{content:"›";position:absolute;left:0;color:var(--teal)}
-@keyframes in{from{opacity:0;transform:translateX(-8px)}}
-.note{font:400 11px var(--mono);color:var(--mute);margin-top:14px;opacity:.7}
-@media(max-width:800px){.lab{grid-template-columns:1fr}}
-
-/* chain */
-.chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:36px 0 0}
-.stage{flex:1 1 200px;background:var(--panel);border:1px solid var(--line);padding:22px;position:relative;transition:.5s}
-.stage+.stage{margin-left:-1px}
-.stage .n{font:700 11px var(--mono);color:var(--mute);margin-bottom:10px}
-.stage h5{margin:0 0 6px;font-size:1.05rem}
-.stage p{margin:0;font-size:13.5px;color:var(--mute)}
-.stage::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--red);transition:width 1s}
-.chain.go .stage{background:#12121a;border-color:#3a2530}.chain.go .stage .n{color:var(--red)}.chain.go .stage::after{width:100%}
-.chain.go .stage:nth-child(2),.chain.go .stage:nth-child(2)::after{transition-delay:.7s}
-.chain.go .stage:nth-child(3),.chain.go .stage:nth-child(3)::after{transition-delay:1.4s}
-.chain.go .stage:nth-child(4),.chain.go .stage:nth-child(4)::after{transition-delay:2.1s}
-.stage:nth-child(4){}
-.rulecap{margin-top:14px;font:400 12px var(--mono);color:var(--mute)}
+/* game */
+.game{background:var(--mint);padding:130px 0 120px;--bgc:var(--mint);overflow:hidden}
+.arena{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.deck{position:relative;height:380px;perspective:900px}
+.alert{position:absolute;inset:0;background:#fff;border:var(--bw) solid var(--ink);border-radius:28px;padding:26px;box-shadow:var(--sh);display:flex;flex-direction:column;transition:transform .55s cubic-bezier(.3,1.2,.5,1),opacity .4s}
+.alert.back{transform:translateY(14px) scale(.96) rotate(2deg);background:var(--yellow);z-index:0}
+.alert .meta{display:flex;justify-content:space-between;font:700 12px var(--mono);margin-bottom:14px}
+.alert .meta b{background:var(--pink);padding:2px 10px;border-radius:99px;border:2px solid var(--ink)}
+.alert h4{font-size:clamp(1.3rem,2.6vw,1.8rem);line-height:1.12;margin:0;letter-spacing:-.02em;font-weight:800}
+.alert .ev{margin-top:auto;font:700 12px/1.7 var(--mono);background:var(--ink);color:var(--mint);padding:12px 14px;border-radius:14px}
+.alert.out-l{transform:translateX(-130%) rotate(-24deg);opacity:0}
+.alert.out-r{transform:translateX(130%) rotate(24deg);opacity:0}
+.alert.shake{animation:shake .5s}
+@keyframes shake{20%,60%{transform:translateX(-14px) rotate(-2deg)}40%,80%{transform:translateX(14px) rotate(2deg)}}
+.ctl{display:flex;flex-direction:column;gap:18px}
+.ctl .row{display:flex;gap:14px;flex-wrap:wrap}
+.hud{display:flex;gap:12px;align-items:center;font:700 14px var(--mono)}
+.pip{width:22px;height:22px;border:var(--bw) solid var(--ink);border-radius:50%;background:#fff;transition:.3s cubic-bezier(.3,1.9,.5,1)}
+.pip.ok{background:var(--blue);transform:scale(1.2)}.pip.no{background:var(--pink)}
+.fb{min-height:86px;background:#fff;border:var(--bw) solid var(--ink);border-radius:20px;padding:14px 18px;font-size:17px;box-shadow:4px 4px 0 var(--ink)}
+.fb b{font-weight:800}
+.big{font:800 clamp(3rem,8vw,5.5rem)/1 var(--sans);letter-spacing:-.05em}
+@media(max-width:860px){.arena{grid-template-columns:1fr}.deck{height:360px}}
 
 /* rules */
-.rules{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.rule{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;position:relative;overflow:hidden;transition:.3s}
-.rule:hover{transform:translateY(-4px);border-color:var(--teal)}
-.rule .n{font:700 44px/1 var(--mono);color:#16212c;position:absolute;right:16px;top:8px;transition:.3s}
-.rule:hover .n{color:rgba(57,208,196,.25)}
-.rule h5{margin:0 0 8px;font-size:1.15rem;letter-spacing:-.02em;position:relative}
-.rule p{margin:0;color:var(--mute);font-size:14.5px;position:relative}
-@media(max-width:700px){.rules{grid-template-columns:1fr}}
+.rules{background:var(--pink);padding:130px 0 120px;--bgc:var(--pink)}
+.flips{display:grid;grid-template-columns:repeat(2,1fr);gap:28px}
+.flip{perspective:1000px;height:300px;cursor:pointer}
+.fi{position:relative;width:100%;height:100%;transition:transform .8s cubic-bezier(.3,1.4,.4,1);transform-style:preserve-3d}
+.flip:hover .fi,.flip.on .fi{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border:var(--bw) solid var(--ink);border-radius:28px;padding:30px;box-shadow:8px 8px 0 var(--ink);display:flex;flex-direction:column;justify-content:space-between}
+.face.f{background:#fff}.face.b{background:var(--ink);color:#fff;transform:rotateY(180deg);justify-content:center;font-size:20px}
+.face .k{font:800 clamp(4rem,9vw,7rem)/.8 var(--sans);color:var(--yellow);-webkit-text-stroke:var(--bw) var(--ink);letter-spacing:-.06em}
+.face h3{margin:0;font-size:clamp(1.8rem,3.4vw,2.6rem);line-height:1;letter-spacing:-.04em;font-weight:800}
+.face small{font:700 11px var(--mono);color:#777;letter-spacing:.08em}
+.face.b small{color:var(--mint)}
+@media(max-width:760px){.flips{grid-template-columns:1fr}}
 
-/* stack */
-.stack{display:flex;flex-wrap:wrap;gap:10px}
-.stack span{font:500 13px var(--mono);padding:9px 14px;border:1px solid var(--line);background:var(--panel);border-radius:6px;transition:.25s;cursor:default}
-.stack span:hover{border-color:var(--teal);color:var(--teal);transform:translateY(-3px) rotate(-1deg);box-shadow:0 8px 20px rgba(57,208,196,.12)}
-.grp{margin:0 0 26px}.grp h6{margin:0 0 10px;font:500 11px var(--mono);color:var(--mute);letter-spacing:.08em}
+/* kit */
+.kit{background:var(--blue);padding:130px 0 120px;--bgc:var(--blue)}
+.grp{margin-bottom:34px}.grp h6{margin:0 0 14px;font:700 13px var(--mono);letter-spacing:.08em;background:var(--ink);color:#fff;display:inline-block;padding:4px 12px;border-radius:99px}
+.pills{display:flex;flex-wrap:wrap;gap:12px}
+.pills span{background:#fff;border:var(--bw) solid var(--ink);border-radius:99px;padding:10px 22px;font:800 19px var(--sans);box-shadow:4px 4px 0 var(--ink);animation:bob 4s ease-in-out infinite;animation-delay:var(--d);transition:transform .25s cubic-bezier(.3,1.9,.5,1),background .2s;cursor:default}
+.pills span:hover{background:var(--yellow);transform:scale(1.18) rotate(-5deg)!important;animation-play-state:paused}
+@keyframes bob{50%{transform:translateY(-8px)}}
 
 /* contact */
-.term{background:#05080c;border:1px solid var(--line);border-radius:12px;overflow:hidden;font:400 14px/1.9 var(--mono)}
-.term .tb{display:flex;gap:7px;padding:11px 14px;background:var(--panel);border-bottom:1px solid var(--line);align-items:center}
-.term .tb i{width:10px;height:10px;border-radius:50%;background:#2a3644}.term .tb span{margin-left:10px;font-size:11px;color:var(--mute)}
-.term .bd{padding:20px 22px}
-.term .bd div{white-space:pre-wrap;word-break:break-word}
-.term a{color:var(--teal);border-bottom:1px dashed var(--teal)}.term a:hover{background:rgba(57,208,196,.15)}
-.c{color:var(--mute)}
-footer{margin-top:90px;border-top:1px solid var(--line);padding:24px 0 40px;font:400 12px var(--mono);color:var(--mute);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}h1 .w{opacity:1;transform:none}}
+.contact{background:var(--yellow);padding:130px 0 70px;--bgc:var(--yellow);text-align:center;overflow:hidden}
+.say{font-size:clamp(5rem,26vw,22rem);line-height:.8;letter-spacing:-.07em;font-weight:800;margin:0;text-transform:uppercase;-webkit-text-stroke:var(--bw) var(--ink);color:#fff;text-shadow:8px 8px 0 var(--ink)}
+.say span{display:inline-block;transition:transform .3s cubic-bezier(.3,2,.5,1);cursor:default}
+.say span:hover{transform:translateY(-.12em) rotate(-8deg);color:var(--pink)}
+.mail{display:inline-block;font:800 clamp(1.3rem,5vw,3.4rem)/1.1 var(--sans);letter-spacing:-.04em;margin:34px 0 28px;border-bottom:6px solid var(--ink);word-break:break-all;transition:.2s}
+.mail:hover{background:var(--ink);color:var(--yellow)}
+.now{max-width:640px;margin:44px auto 0;text-align:left;background:#fff;border:var(--bw) solid var(--ink);border-radius:24px;padding:22px 26px;box-shadow:var(--sh)}
+.now h5{margin:0 0 8px;font:700 13px var(--mono);letter-spacing:.08em}
+.now ul{margin:0;padding-left:20px;font-size:17px}
+footer{background:var(--ink);color:#fff;padding:22px 0;font:700 13px var(--mono)}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:95}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv,.name span{opacity:1;transform:none}}
 </style>
 </head>
 <body>
-<div id="prog"></div><div id="scan"></div>
+<div id="prog"></div><canvas id="conf"></canvas>
 
-<header class="bar"><div class="wrap">
-  <span class="brand">abijit@sentinel<i>:~$</i></span>
-  <span class="live"><b></b>on shift</span>
-  <nav><a href="#work">work</a><a href="#lab">detection-lab</a><a href="#rules">rules</a><a href="#stack">stack</a><a href="#contact">contact</a></nav>
-</div></header>
+<nav><a class="logo" href="#top">abijit ✶</a><a class="l" href="#work">Work</a><a class="l" href="#game">Play</a><a class="l" href="#rules">Rules</a><a class="l" href="#kit">Toolkit</a><a class="l" href="#contact">Hello</a></nav>
 
-<main>
-<div class="hero">
-  <canvas id="net"></canvas>
+<header class="hero" id="top">
+  <div class="badge"><svg viewBox="0 0 200 200"><defs><path id="cp" d="M100 100m-80 0a80 80 0 1 1 160 0a80 80 0 1 1-160 0"/></defs>
+    <circle cx="100" cy="100" r="98" fill="#fff" stroke="#14110f" stroke-width="3"/>
+    <text font-family="JetBrains Mono,monospace" font-weight="700" font-size="15" letter-spacing="3" fill="#14110f"><textPath href="#cp">BLUE TEAM ✶ DETECTION ✶ SOC ✶ SIEM ✶ </textPath></text></svg><div class="c">🛡</div></div>
+
+  <div class="stk s1"><div>BLUE<br>TEAM!</div></div>
+  <div class="stk s2" style="--d:-1s"><div>noise ≠ signal</div></div>
+  <div class="stk s3" style="--d:-2s"><div>T1003.001</div></div>
+  <div class="stk s4" style="--d:-3s"><div>🔍</div></div>
+
   <div class="wrap">
-    <div class="prompt">$ whoami <span id="typed"></span><span class="cur"></span></div>
-    <h1 id="h1">Catching what looks <em>normal</em>.</h1>
-    <p class="lede">Third-year CS student on the defensive side. I build detection systems and try to <b>prove they weren't just noise</b> — detection engineering, SIEM operations, endpoint telemetry.</p>
-    <div class="cta"><a class="btn pri" href="#work">open incidents →</a><a class="btn" href="https://github.com/abijit2626">github ↗</a><a class="btn" href="#contact">contact</a></div>
+    <span class="hi">hi, i'm</span>
+    <h1 class="name" id="name" aria-label="Abijit">ABIJIT</h1>
+    <p class="lede">A third-year CS student who builds detection systems and then tries to <mark>prove they weren't just noise</mark>. Detection engineering, SIEM operations, endpoint telemetry.</p>
+    <a class="btn" href="#work">See the work ↓</a> <a class="btn dark" href="https://github.com/abijit2626">GitHub ↗</a>
   </div>
-  <div class="status" id="status"><div class="t"><span>detector.log</span><span>live</span></div><div class="ln ok">✓ baseline established</div></div>
+</header>
+
+<div class="bands" aria-hidden="true">
+  <div class="band b1"><div data-dir="-1">Detection engineering<i>✶</i>SIEM<i>✶</i>Endpoint telemetry<i>✶</i>Blue team<i>✶</i>Detection engineering<i>✶</i>SIEM<i>✶</i>Endpoint telemetry<i>✶</i>Blue team<i>✶</i></div></div>
+  <div class="band b2"><div data-dir="1">Wazuh<i>✶</i>Sysmon<i>✶</i>MITRE ATT&amp;CK<i>✶</i>Python<i>✶</i>Go<i>✶</i>Wazuh<i>✶</i>Sysmon<i>✶</i>MITRE ATT&amp;CK<i>✶</i>Python<i>✶</i>Go<i>✶</i></div></div>
 </div>
 
-<div class="ticker"><div class="tick" id="tick"></div></div>
+<section class="work zz" id="work"><div class="wrap">
+  <span class="kick rv">01 / SELECTED WORK</span>
+  <h2 class="rv">Systems that <span class="hl">stay quiet</span> until it matters</h2>
+  <p class="sub rv">Seven projects, one hard problem: telling real attacker behaviour from software that merely looks suspicious.</p>
 
-<div class="wrap">
-  <div class="stats rv" id="stats">
-    <div><b data-n="5210">0</b><span>labelled PE samples (ClaMP)</span></div>
-    <div><b data-n="67">0</b><span>PE-header features</span></div>
-    <div><b data-n="38">0</b><span>startup self-checks, CTF</span></div>
-    <div><b data-n="18">0</b><span>CTF challenges built</span></div>
+  <div class="stack" id="stack">
+    <div class="sc"><a class="card c1" href="https://github.com/abijit2626/ambit"><i class="glare"></i><span class="n">01</span>
+      <div><h3>ambit</h3><p>A provenance and control plane for Claude Code agents and the MCP servers they connect to. Built in response to <b>s1ngularity</b> and <b>GTG-1002</b>.</p><p>An endpoint daemon holds the live verdicts; Wazuh is the fleet plane and never sits in the synchronous path.</p><div class="quiet"><b>WHY IT STAYS QUIET</b>M0 answers <code>{}</code> to every hook, so no session behaves differently because of it.</div></div>
+      <div class="side"><div class="facts">STATUS → M0 complete, tested<br>NEXT → design only</div><div class="tags"><span>Go</span><span>Wazuh</span><span>MCP</span></div><span class="btn dark" style="align-self:flex-start">View repo ↗</span></div></a></div>
+
+    <div class="sc"><a class="card c2" href="https://github.com/abijit2626/keyboard-hook-behavioral-detector"><i class="glare"></i><span class="n">02</span>
+      <div><h3>Keyboard Hook Detector</h3><p>Finds processes <i>capable</i> of keylogging and scores how suspicious they look over time. It never hooks the keyboard or captures keystrokes.</p><p>Rule engine with persistence and decay, a RandomForest on ClaMP, and an import-table fingerprint mapped to MITRE ATT&amp;CK.</p><div class="quiet"><b>WHY IT STAYS QUIET</b>ML can only amplify a rule that already fired. Allowlisted processes score zero.</div></div>
+      <div class="side"><div class="facts">DATA → 5,210 PE samples<br>FEATURES → 67 header fields</div><div class="tags"><span>Python</span><span>scikit-learn</span><span>Flask</span></div><span class="btn dark" style="align-self:flex-start">View repo ↗</span></div></a></div>
+
+    <div class="sc"><a class="card c3" href="https://github.com/abijit2626/SIEM-Project"><i class="glare"></i><span class="n">03</span>
+      <div><h3>Attack Chain SIEM</h3><p>A stateful correlation engine that raises an incident only when a full chain appears in order inside a window: access anomaly → C2 beacon → objective.</p><p>Beacons are found by interval-variance analysis, not ML, so every flag can be walked through by hand.</p><div class="quiet"><b>WHY IT STAYS QUIET</b>A beacon alone produces nothing. Tests assert the negatives as hard as the positives.</div></div>
+      <div class="side"><div class="facts">DEPS → standard library only<br>STATE → per entity, expiring</div><div class="tags"><span>Python</span><span>Correlation</span></div><span class="btn dark" style="align-self:flex-start">View repo ↗</span></div></a></div>
+
+    <div class="sc"><a class="card c4" href="https://github.com/abijit2626/wazuh-investigations"><i class="glare"></i><span class="n">04</span>
+      <div><h3>Wazuh Investigations</h3><p>A SOC home lab with both sides in one repo: a stateful, MITRE-mapped adversary telemetry generator, and what I found pointing Wazuh at it.</p><p>Includes the detections that <i>didn't</i> fire, each written up with its root cause and the rule needed to close it.</p></div>
+      <div class="side"><div class="facts">CHAIN → T1110.001 → T1003.001<br>OUT → ndjson into Wazuh</div><div class="tags"><span>Wazuh</span><span>Sysmon</span><span>ATT&amp;CK</span></div><span class="btn dark" style="align-self:flex-start">View repo ↗</span></div></a></div>
+
+    <div class="sc"><a class="card c5" href="https://github.com/abijit2626/ctf-workshop"><i class="glare"></i><span class="n">05</span>
+      <div><h3>CTF Workshop</h3><p>An 18-challenge, one-day CTF I built and run for the TinkerHub study jam, for students with no security background. Three rounds, fully offline, one command to launch.</p><div class="quiet"><b>WHY IT STAYS QUIET</b>38 automated checks validate every flag at startup. It refuses to say “ready” if any fail.</div></div>
+      <div class="side"><div class="facts">ROUNDS → recon · web · stego<br>LAUNCH → ./event.sh up</div><div class="tags"><span>Flask</span><span>Docker</span><span>Python</span></div><span class="btn dark" style="align-self:flex-start">View repo ↗</span></div></a></div>
+
+    <div class="sc"><a class="card c6" href="https://github.com/abijit2626/personal-recon-tool"><i class="glare"></i><span class="n">06</span>
+      <div><h3>Ghost Recon</h3><p>A modular recon framework for CTFs, HTB and authorised engagements: ten pipeline stages ending in a self-contained HTML report.</p><p>Tools are probed before use, every command runs under a timeout, and output never overwrites.</p></div>
+      <div class="side"><div class="facts">STAGES → 10<br>REPORT → single HTML file</div><div class="tags"><span>Bash</span><span>nmap</span></div><span class="btn dark" style="align-self:flex-start">View repo ↗</span></div></a></div>
+
+    <div class="sc"><a class="card c7" href="https://github.com/abijit2626/hackerone-ctf-writeups"><i class="glare"></i><span class="n">07</span>
+      <div><h3>Hacker101 Writeups</h3><p>Solved-and-explained: Micro-CMS v1 and v2, A Little Something to Get You Started, and Encrypted Pastebin. The padding-oracle work became a live instructor demo at the study jam.</p></div>
+      <div class="side"><div class="tags"><span>Writeups</span><span>Web</span><span>Crypto</span></div><span class="btn dark" style="align-self:flex-start">View repo ↗</span></div></a></div>
   </div>
+</div></section>
 
-  <section id="work">
-    <div class="sh rv">01 / INCIDENT QUEUE</div>
-    <h2 class="rv">Systems built to stay quiet until it matters.</h2>
-    <p class="sub rv">Each ticket is a project. Click one to open it, including the restraint built into it.</p>
-    <div class="tickets" id="tickets">
-
-      <article class="tk rv open"><div class="tk-h"><span class="id">INC-001</span><h3>ambit<small>Go · Wazuh · MCP</small></h3><span class="sev s-a">ACTIVE</span><span class="chev">›</span></div>
-        <div class="tk-b"><div><div class="tk-in"><div>
-          <p>A provenance and control plane for Claude Code agents and the MCP servers they connect to, built in response to documented attacks: <b>s1ngularity</b> and <b>GTG-1002</b>.</p>
-          <p>An endpoint daemon holds everything needing a live verdict; Wazuh is the fleet plane and never sits in the synchronous path.</p>
-          <div class="quiet"><span>WHY IT STAYS QUIET</span>M0 observation layer answers <code>{}</code> to every hook, so no session behaves differently because of it.</div>
-        </div><div><div class="kv">status <b>M0 complete, tested</b><br>later milestones <b>design only</b></div><div class="tags"><span>Go</span><span>Wazuh</span><span>MCP</span></div><a class="go" href="https://github.com/abijit2626/ambit">view repo →</a></div></div></div></div></article>
-
-      <article class="tk rv"><div class="tk-h"><span class="id">INC-002</span><h3>keyboard-hook-behavioral-detector<small>Python · Windows · scikit-learn</small></h3><span class="sev s-b">DETECTOR</span><span class="chev">›</span></div>
-        <div class="tk-b"><div><div class="tk-in"><div>
-          <p>Finds processes <i>capable</i> of keylogging and scores how suspicious they look over time. It never hooks the keyboard or captures keystrokes.</p>
-          <p>Three gated layers: a rule engine with persistence and risk decay, a RandomForest on ClaMP, and an import-table fingerprint mapped to MITRE ATT&amp;CK.</p>
-          <div class="quiet"><span>WHY IT STAYS QUIET</span>ML can only amplify a rule that already fired. Allowlisted processes score zero. Try it in the lab below.</div>
-        </div><div><div class="kv">model <b>RandomForest</b><br>data <b>5,210 samples</b><br>dashboard <b>localhost only</b></div><div class="tags"><span>Python</span><span>Flask</span><span>T1056.001</span></div><a class="go" href="https://github.com/abijit2626/keyboard-hook-behavioral-detector">view repo →</a></div></div></div></div></article>
-
-      <article class="tk rv"><div class="tk-h"><span class="id">INC-003</span><h3>SIEM-Project<small>Python, standard library only</small></h3><span class="sev s-b">CORRELATION</span><span class="chev">›</span></div>
-        <div class="tk-b"><div><div class="tk-in"><div>
-          <p>A stateful correlation engine that raises an incident only when a full chain appears in order inside a time window: access anomaly → C2 beacon → objective.</p>
-          <p>Beacons are found by interval-variance analysis, not ML, so each flag can be walked through by hand.</p>
-          <div class="quiet"><span>WHY IT STAYS QUIET</span>Beacon alone: nothing. Access plus objective with no beacon: nothing. The tests assert the negatives as hard as the positives.</div>
-        </div><div><div class="kv">deps <b>none</b><br>state <b>per entity, expiring</b></div><div class="tags"><span>Python</span><span>Correlation</span></div><a class="go" href="https://github.com/abijit2626/SIEM-Project">view repo →</a></div></div></div></div></article>
-
-      <article class="tk rv"><div class="tk-h"><span class="id">INC-004</span><h3>wazuh-investigations<small>Python · Wazuh · Sysmon</small></h3><span class="sev s-c">LAB</span><span class="chev">›</span></div>
-        <div class="tk-b"><div><div class="tk-in"><div>
-          <p>A SOC home lab with both sides in one repo: a stateful, MITRE-mapped adversary telemetry generator, and the investigations from pointing Wazuh at it.</p>
-          <p>Includes the detections that <i>didn't</i> fire — scheduled tasks, suspicious PowerShell, plaintext credentials on the command line — each with the rule needed to close the gap.</p>
-        </div><div><div class="kv">chain <b>T1110.001 → T1003.001</b><br>output <b>ndjson → Wazuh</b></div><div class="tags"><span>Wazuh</span><span>Sysmon</span><span>ATT&amp;CK</span></div><a class="go" href="https://github.com/abijit2626/wazuh-investigations">view repo →</a></div></div></div></div></article>
-
-      <article class="tk rv"><div class="tk-h"><span class="id">INC-005</span><h3>ctf-workshop<small>Python · Flask · Docker</small></h3><span class="sev s-c">TEACHING</span><span class="chev">›</span></div>
-        <div class="tk-b"><div><div class="tk-in"><div>
-          <p>An 18-challenge, one-day CTF I built and run for the TinkerHub study jam for students with no security background. Three rounds, fully offline, one command to bring up.</p>
-          <div class="quiet"><span>WHY IT STAYS QUIET</span>38 automated checks validate all 18 flags at startup, and it refuses to print “ready” if any fail.</div>
-        </div><div><div class="kv">rounds <b>recon · web · stego</b><br>launch <b>./event.sh up</b></div><div class="tags"><span>Flask</span><span>Docker</span></div><a class="go" href="https://github.com/abijit2626/ctf-workshop">view repo →</a></div></div></div></div></article>
-
-      <article class="tk rv"><div class="tk-h"><span class="id">INC-006</span><h3>personal-recon-tool “Ghost”<small>Bash</small></h3><span class="sev s-c">TOOLING</span><span class="chev">›</span></div>
-        <div class="tk-b"><div><div class="tk-in"><div>
-          <p>A modular recon framework for CTFs, HTB and authorised engagements: ten pipeline stages from port scan to SSL/TLS to screenshots, ending in a self-contained HTML report.</p>
-          <p>Tools are probed before use, every command runs under a timeout, and output never overwrites.</p>
-        </div><div><div class="tags"><span>Bash</span><span>nmap</span></div><a class="go" href="https://github.com/abijit2626/personal-recon-tool">view repo →</a></div></div></div></div></article>
-
-      <article class="tk rv"><div class="tk-h"><span class="id">INC-007</span><h3>hackerone-ctf-writeups<small>Hacker101</small></h3><span class="sev s-c">WRITEUPS</span><span class="chev">›</span></div>
-        <div class="tk-b"><div><div class="tk-in"><div>
-          <p>Solved-and-explained Hacker101 challenges: Micro-CMS v1 and v2, A Little Something to Get You Started, and Encrypted Pastebin. The padding-oracle work became a live instructor demo at the study jam.</p>
-        </div><div><a class="go" href="https://github.com/abijit2626/hackerone-ctf-writeups">view repo →</a></div></div></div></div></article>
+<section class="game zz" id="game"><div class="wrap">
+  <span class="kick rv">02 / PLAY</span>
+  <h2 class="rv">Signal or <span class="hl">noise?</span></h2>
+  <p class="sub rv">You're on shift. Eight alerts. Escalate the real ones, ignore the rest. The answers follow the rules I build my detectors around.</p>
+  <div class="arena rv">
+    <div class="deck" id="deck"></div>
+    <div class="ctl">
+      <div class="hud"><span id="count">1/8</span><span id="pips" style="display:flex;gap:6px"></span></div>
+      <div class="row"><button class="btn dark" id="no">← Ignore (noise)</button><button class="btn" id="yes" style="background:var(--pink)">Escalate (threat) →</button></div>
+      <div class="fb" id="fb">Read the alert, then decide. Arrow keys work too.</div>
     </div>
-  </section>
+  </div>
+</div></section>
 
-  <section id="lab">
-    <div class="sh rv">02 / DETECTION LAB</div>
-    <h2 class="rv">Toggle the signals. Watch it explain itself.</h2>
-    <p class="sub rv">A small illustration of the gating logic in my keyboard-hook detector. Scores are illustrative, not real model output.</p>
-    <div class="lab rv">
-      <div>
-        <h4>SIGNALS</h4><p class="h">Flip these on and off.</p>
-        <label class="sw"><input type="checkbox" id="s-cap"><i></i><span>Hook capability present<small>process has a keyboard hook installed</small></span></label>
-        <label class="sw"><input type="checkbox" id="s-per"><i></i><span>Persisted over time<small>behaviour survives across observations</small></span></label>
-        <label class="sw"><input type="checkbox" id="s-imp"><i></i><span>Import fingerprint matches<small>API categories map to ATT&amp;CK</small></span></label>
-        <label class="sw"><input type="checkbox" id="s-ml"><i></i><span>Model says “malicious”<small>RandomForest output</small></span></label>
-        <label class="sw" style="border:0"><input type="checkbox" id="s-allow"><i></i><span>Process is allowlisted<small>known-good software</small></span></label>
-      </div>
-      <div>
-        <h4>VERDICT</h4>
-        <div class="score" id="score">0</div>
-        <div class="gauge"><b id="gauge"></b></div>
-        <div class="verdict" id="verdict">QUIET</div>
-        <ul class="why" id="why"></ul>
-        <div class="note">Try: turn on only the model. Nothing happens, and that’s the point.</div>
-      </div>
-    </div>
+<section class="rules zz" id="rules"><div class="wrap">
+  <span class="kick rv">03 / RULES</span>
+  <h2 class="rv">Four rules I keep <span class="hl">rediscovering</span></h2>
+  <p class="sub rv">Hover (or tap) a card to flip it.</p>
+  <div class="flips">
+    <div class="flip rv"><div class="fi"><div class="face f"><span class="k">01</span><div><small>RULE</small><h3>Capability is not intent.</h3></div></div><div class="face b"><small>WHY</small>Trusted software installs keyboard hooks, opens raw sockets and reads the clipboard. Flagging capability alone builds a tool analysts learn to ignore.</div></div></div>
+    <div class="flip rv"><div class="fi"><div class="face f"><span class="k">02</span><div><small>RULE</small><h3>Persistence amplifies risk.</h3></div></div><div class="face b"><small>WHY</small>A single observation is a data point. Behaviour that survives over time is a signal.</div></div></div>
+    <div class="flip rv"><div class="fi"><div class="face f"><span class="k">03</span><div><small>RULE</small><h3>Every signal explains itself.</h3></div></div><div class="face b"><small>WHY</small>If I can't say why it scored what it did, nobody can triage it. A model score never crosses a threshold on its own.</div></div></div>
+    <div class="flip rv"><div class="fi"><div class="face f"><span class="k">04</span><div><small>RULE</small><h3>Correlation beats volume.</h3></div></div><div class="face b"><small>WHY</small>One high-confidence incident from a complete attack chain is worth more than a thousand isolated alerts.</div></div></div>
+  </div>
+</div></section>
 
-    <div class="chain rv" id="chain">
-      <div class="stage"><div class="n">STAGE 1</div><h5>Access anomaly</h5><p>Unusual login pattern for an entity.</p></div>
-      <div class="stage"><div class="n">STAGE 2</div><h5>C2 beacon</h5><p>Low interval variance: regular, machine-like check-ins.</p></div>
-      <div class="stage"><div class="n">STAGE 3</div><h5>Objective behaviour</h5><p>Actions that serve the attacker’s goal.</p></div>
-      <div class="stage"><div class="n">RESULT</div><h5>One incident</h5><p>Raised only after all three, in order, in the window.</p></div>
-    </div>
-    <div class="rulecap rv">↑ the attack-chain correlation from INC-003. Scroll to trigger it.</div>
-  </section>
+<section class="kit zz" id="kit"><div class="wrap">
+  <span class="kick rv">04 / TOOLKIT</span>
+  <h2 class="rv">What's in the <span class="hl">bag</span></h2>
+  <div style="height:24px"></div>
+  <div class="grp rv"><h6>LANGUAGES</h6><div class="pills"><span>Python</span><span>Bash</span><span>Go</span><span>C++</span><span>Java</span></div></div>
+  <div class="grp rv"><h6>DETECTION &amp; SIEM</h6><div class="pills"><span>Wazuh</span><span>Sysmon</span><span>MITRE ATT&amp;CK</span><span>Gap analysis</span><span>Correlation engines</span></div></div>
+  <div class="grp rv"><h6>WINDOWS &amp; ENDPOINT</h6><div class="pills"><span>PE format analysis</span><span>Import-table fingerprinting</span><span>Windows internals</span><span>Process telemetry</span></div></div>
+  <div class="grp rv"><h6>OFFENSIVE, FOR DEFENSIVE ENDS</h6><div class="pills"><span>nmap</span><span>Burp</span><span>Service enumeration</span><span>Web exploitation</span><span>Steganography</span></div></div>
+  <div class="grp rv"><h6>BUILD &amp; INFRA</h6><div class="pills"><span>Docker</span><span>Flask</span><span>scikit-learn</span><span>SQLite</span><span>Git</span></div></div>
+</div></section>
 
-  <section id="rules">
-    <div class="sh rv">03 / RULES OF ENGAGEMENT</div>
-    <h2 class="rv">Four rules I keep arriving at independently.</h2>
-    <p class="sub rv">Across unrelated projects, the same ideas keep coming back.</p>
-    <div class="rules">
-      <div class="rule rv"><span class="n">01</span><h5>Capability is not intent.</h5><p>Trusted software installs keyboard hooks, opens raw sockets and reads the clipboard. Flagging capability alone builds a tool analysts learn to ignore.</p></div>
-      <div class="rule rv"><span class="n">02</span><h5>Persistence amplifies risk.</h5><p>A single observation is a data point. Behaviour that survives over time is a signal.</p></div>
-      <div class="rule rv"><span class="n">03</span><h5>Every signal explains itself.</h5><p>If I can’t say why something scored what it did, nobody can triage it. A model score never crosses a threshold on its own.</p></div>
-      <div class="rule rv"><span class="n">04</span><h5>Correlation beats volume.</h5><p>One high-confidence incident from a complete attack chain is worth more than a thousand isolated alerts.</p></div>
-    </div>
-  </section>
-
-  <section id="stack">
-    <div class="sh rv">04 / TOOLKIT</div>
-    <h2 class="rv">What I work with.</h2>
-    <div style="height:24px"></div>
-    <div class="grp rv"><h6>LANGUAGES</h6><div class="stack"><span>Python</span><span>Bash</span><span>Go</span><span>C++</span><span>Java</span></div></div>
-    <div class="grp rv"><h6>DETECTION &amp; SIEM</h6><div class="stack"><span>Wazuh</span><span>Sysmon</span><span>MITRE ATT&amp;CK</span><span>Gap analysis</span><span>Correlation engines</span></div></div>
-    <div class="grp rv"><h6>WINDOWS &amp; ENDPOINT</h6><div class="stack"><span>PE format analysis</span><span>Import-table fingerprinting</span><span>Windows internals</span><span>Process telemetry</span></div></div>
-    <div class="grp rv"><h6>OFFENSIVE, FOR DEFENSIVE ENDS</h6><div class="stack"><span>nmap</span><span>Burp</span><span>Service enumeration</span><span>Web exploitation</span><span>Steganography</span></div></div>
-    <div class="grp rv"><h6>BUILD &amp; INFRA</h6><div class="stack"><span>Docker</span><span>Flask</span><span>scikit-learn</span><span>SQLite</span><span>Git</span></div></div>
-  </section>
-
-  <section id="contact">
-    <div class="sh rv">05 / CONTACT</div>
-    <h2 class="rv">Open to work, open to feedback.</h2>
-    <p class="sub rv">Looking for SOC analyst and detection engineering roles through final-year placements (2027–2028), open source security projects, and anyone who wants to be a second pair of eyes on detection work.</p>
-    <div class="term rv"><div class="tb"><i></i><i></i><i></i><span>~/contact</span></div><div class="bd">
-<div><span class="c">$</span> cat currently.txt</div>
-<div class="c">- extending the Wazuh lab into detection-as-code (Sigma, Atomic Red Team, CI-validated)
-- building ambit toward telling AI-agent activity from human-driven attacks
-- running the TinkerHub security study jam</div>
-<div><span class="c">$</span> mail <a href="mailto:Abijit2626@gmail.com">Abijit2626@gmail.com</a></div>
-<div><span class="c">$</span> open <a href="https://github.com/abijit2626">github.com/abijit2626</a></div>
-    </div></div>
-  </section>
-  <footer><span>© 2026 Abijit</span><span>detection · SOC · blue team</span></footer>
-</div>
-</main>
+<section class="contact zz" id="contact"><div class="wrap">
+  <h2 class="say" id="say" aria-label="Say hi">SAY HI</h2>
+  <a class="mail" href="mailto:Abijit2626@gmail.com">Abijit2626@gmail.com</a><br>
+  <button class="btn dark" id="boom">Throw confetti ✶</button> <a class="btn" href="https://github.com/abijit2626">GitHub ↗</a>
+  <div class="now"><h5>CURRENTLY</h5><ul><li>Extending the Wazuh lab into detection-as-code (Sigma, Atomic Red Team)</li><li>Building ambit toward telling AI-agent activity from human attacks</li><li>Running the TinkerHub security study jam</li></ul><h5 style="margin-top:16px">LOOKING FOR</h5><ul><li>SOC analyst and detection engineering roles, placements 2027–2028</li><li>Open source security projects to contribute to</li></ul></div>
+</div></section>
+<footer><div class="wrap"><span>© 2026 ABIJIT</span><span>DETECTION ✶ SOC ✶ BLUE TEAM</span></div></footer>
 
 <script>
 (function(){
-var $=function(s,c){return (c||document).querySelector(s)},$$=function(s,c){return [].slice.call((c||document).querySelectorAll(s))};
+var $=function(s,c){return(c||document).querySelector(s)},$$=function(s,c){return[].slice.call((c||document).querySelectorAll(s))};
 var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+var COL=['#ff4fa3','#ffd23f','#3ee6b0','#4cc3ff','#6c4cff','#ff7a3d'];
 
-/* headline words */
-var h1=$('#h1'),i=0;
-(function split(n){[].slice.call(n.childNodes).forEach(function(c){
-  if(c.nodeType===3){var f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(function(t){if(!t)return;if(/^\s+$/.test(t)){f.appendChild(document.createTextNode(t))}else{var s=document.createElement('span');s.className='w';s.style.animationDelay=(0.15+i++*0.12)+'s';s.textContent=t;f.appendChild(s)}});n.replaceChild(f,c)}
-  else if(c.nodeType===1){c.classList.add('w');c.style.animationDelay=(0.15+i++*0.12)+'s'}})})(h1);
+/* split letters */
+function split(el,cls){var t=el.textContent;el.textContent='';t.split('').forEach(function(ch,i){var s=document.createElement('span');s.textContent=ch===' '?' ':ch;if(cls)s.style.animationDelay=(.2+i*.09)+'s';el.appendChild(s)})}
+var nm=$('#name');split(nm,1);$$('span',nm).forEach(function(s){s.addEventListener('mouseenter',function(){s.classList.remove('j');void s.offsetWidth;s.classList.add('j')})});
+var say=$('#say');split(say);
 
-/* typed whoami */
-var txt='detection engineer · blue team',ti=0,ty=$('#typed');
-(function t(){if(ti<=txt.length){ty.textContent=' → '+txt.slice(0,ti++);setTimeout(t,reduce?0:45)}})();
-
-/* clock */
-
-/* ticker */
-var ev=[
- ['ok','auth','success','user=svc-backup','host=WS-04'],['a','net','egress','dst=203.0.113.9:443','interval=60.1s'],['ok','proc','spawn','powershell.exe','parent=explorer'],
- ['a','reg','runkey','HKCU\\..\\Run','T1547.001'],['ok','dns','query','update.vendor.example'],['r','auth','fail x14','user=admin','src=198.51.100.7'],
- ['ok','file','write','C:\\Users\\..\\report.docx'],['a','net','egress','dst=203.0.113.9:443','interval=59.9s'],['r','lsass','handle','proc=unknown.exe','T1003.001'],['ok','auth','success','user=abijit']];
-var tk=$('#tick'),h='';
-ev.forEach(function(e,k){h+='<span class="'+e[0]+'">'+String(k*7+100).padStart(4,'0')+' <b>'+e[1]+'</b> '+e.slice(2).join(' ')+'</span>'});
-tk.innerHTML=h+h;
-
-/* scroll reveal + progress + stats */
-var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);
-  if(e.target.id==='stats')countUp();if(e.target.id==='chain')e.target.classList.add('go')}})},{threshold:.15});
+/* reveal */
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
 $$('.rv').forEach(function(el){io.observe(el)});
-addEventListener('scroll',function(){var d=document.documentElement;$('#prog').style.width=d.scrollTop/(d.scrollHeight-d.clientHeight)*100+'%'},{passive:true});
-function countUp(){$$('#stats b').forEach(function(b){var n=+b.dataset.n,s=performance.now();(function f(t){var p=Math.min(1,(t-s)/1400),e=1-Math.pow(1-p,3);b.textContent=Math.round(n*e).toLocaleString();if(p<1)requestAnimationFrame(f)})(s)})}
 
-/* tickets */
-$$('.tk').forEach(function(t){
-  $('.tk-h',t).addEventListener('click',function(){var was=t.classList.contains('open');$$('.tk').forEach(function(x){x.classList.remove('open')});if(!was)t.classList.add('open')});
-  t.addEventListener('pointermove',function(e){var r=t.getBoundingClientRect();t.style.setProperty('--mx',(e.clientX-r.left)+'px');t.style.setProperty('--my',(e.clientY-r.top)+'px')});
-});
+/* progress + stacked cards + bands */
+var sc=$$('.sc'),bands=$$('.band div'),bx=[0,0],lastY=scrollY,vel=0;
+function topOf(i){return 100+i*16}
+sc.forEach(function(s,i){s.style.top=topOf(i)+'px'});
+function stackUpdate(){
+  if(innerWidth<=820){sc.forEach(function(s){s.style.transform=''});return}
+  sc.forEach(function(s,i){if(i>=sc.length-1)return;var h=s.offsetHeight,nt=sc[i+1].getBoundingClientRect().top,d=nt-topOf(i+1);
+    var p=Math.max(0,Math.min(1,1-d/h));s.style.transform='scale('+(1-p*.06)+')';s.firstElementChild.style.filter='brightness('+(1-p*.12)+')'})}
+addEventListener('scroll',function(){var d=document.documentElement;$('#prog').style.width=scrollY/(d.scrollHeight-d.clientHeight)*100+'%';stackUpdate()},{passive:true});
+stackUpdate();addEventListener('resize',stackUpdate);
+function loop(){var dy=scrollY-lastY;lastY=scrollY;vel+=(dy-vel)*.1;
+  bands.forEach(function(b,i){var dir=+b.dataset.dir;bx[i]+=dir*(1.2+Math.abs(vel)*.35);var w=b.scrollWidth/2;if(bx[i]<-w)bx[i]+=w;if(bx[i]>0&&dir>0)bx[i]-=w;b.style.transform='translateX('+bx[i]+'px)'});
+  if(!reduce)requestAnimationFrame(loop)}
+bx=[0,-1];loop();
 
-/* detection lab */
-var ids=['cap','per','imp','ml','allow'],el={};ids.forEach(function(k){el[k]=$('#s-'+k);el[k].addEventListener('change',calc)});
-function calc(){
-  var why=[],s=0,cap=el.cap.checked;
-  if(el.allow.checked){s=0;why.push('allowlisted process → score forced to 0')}
-  else if(!cap){
-    why.push('no hook capability → no rule can fire');
-    if(el.per.checked||el.imp.checked||el.ml.checked)why.push('other signals present but nothing to amplify → ignored');
-    if(el.ml.checked)why.push('model output alone never creates an alert');
-  }else{
-    s=30;why.push('+30 hook capability observed (rule fired)');
-    if(el.per.checked){s+=25;why.push('+25 persisted over time (amplifies)')}
-    if(el.imp.checked){s+=15;why.push('+15 import fingerprint matches ATT&CK')}
-    if(el.ml.checked){s+=20;why.push('+20 model agrees (amplifies a fired rule)')}
-  }
-  var v=s>=60?['ALERT','var(--red)']:s>=30?['WATCH','var(--amber)']:['QUIET','var(--teal)'];
-  var sc=$('#score');sc.textContent=s;sc.style.color=v[1];
-  var g=$('#gauge');g.style.width=s+'%';g.style.background=v[1];g.style.color=v[1];
-  var vd=$('#verdict');vd.textContent=v[0];vd.style.color=v[1];
-  $('#why').innerHTML=why.map(function(w,k){return '<li style="animation-delay:'+k*60+'ms">'+w+'</li>'}).join('');
-}
-calc();
+/* card tilt */
+$$('.card').forEach(function(c){
+  c.addEventListener('pointermove',function(e){if(e.pointerType==='touch')return;var r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+    c.style.transform='perspective(1000px) rotateX('+(.5-y)*6+'deg) rotateY('+(x-.5)*8+'deg)';c.style.setProperty('--gx',x*100+'%');c.style.setProperty('--gy',y*100+'%')});
+  c.addEventListener('pointerleave',function(){c.style.transform=''})});
 
-/* network canvas */
-var cv=$('#net'),cx=cv.getContext('2d'),W,H,N=[],mouse={x:-999,y:-999},dpr=Math.min(2,devicePixelRatio||1);
-function size(){var r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0);
-  var n=Math.round(Math.min(70,Math.max(26,W*H/16000)));N=[];for(var k=0;k<n;k++)N.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,st:0,fl:0});}
-size();addEventListener('resize',size);
-cv.parentNode.addEventListener('pointermove',function(e){var r=cv.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
-cv.parentNode.addEventListener('pointerleave',function(){mouse.x=mouse.y=-999});
-var COL={0:'57,208,196',1:'245,179,66',2:'255,93,108',3:'121,192,255'};
-var script=[],st=$('#status'),logs=[];
-function log(cls,t){logs.push('<div class="ln '+cls+'">'+t+'</div>');if(logs.length>4)logs.shift();st.innerHTML='<div class="t"><span>detector.log</span><span>'+new Date().toISOString().slice(11,19)+'Z</span></div>'+logs.join('')}
-var chainNodes=[],phase=-1,beacons=[];
-function pick(){var idx=[];while(idx.length<3){var k=Math.floor(Math.random()*N.length);if(idx.indexOf(k)<0)idx.push(k)}return idx.map(function(k){return N[k]})}
-function run(){
-  N.forEach(function(n){n.st=0;n.fl=0});beacons=[];chainNodes=pick();var a=chainNodes[0],b=chainNodes[1],c=chainNodes[2];
-  var T=[[600,function(){log('ok','✓ baseline established')}],
-   [2200,function(){a.st=1;log('warn','! access anomaly · entity-'+N.indexOf(a))}],
-   [4200,function(){b.st=1;beacons.push({from:a,to:b,t:0});log('warn','! periodic egress · variance low')}],
-   [6000,function(){log('ok','· beacon alone → no incident (waiting)')}],
-   [8200,function(){c.st=2;log('bad','✗ objective behaviour observed')}],
-   [9200,function(){[a,b,c].forEach(function(n){n.fl=1});log('bad','■ INCIDENT: full chain in window')}],
-   [13800,function(){run()}]];
-  script=T.map(function(x){return setTimeout(x[1],x[0])});
-}
-run();
-function frame(){
-  cx.clearRect(0,0,W,H);
-  for(var p=0;p<N.length;p++){var n=N[p];n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;
-    var dx=n.x-mouse.x,dy=n.y-mouse.y,d=Math.hypot(dx,dy);if(d<110){n.x+=dx/d*1.2;n.y+=dy/d*1.2}}
-  for(var i2=0;i2<N.length;i2++)for(var j=i2+1;j<N.length;j++){var A=N[i2],B=N[j],d2=Math.hypot(A.x-B.x,A.y-B.y);
-    if(d2<130){cx.strokeStyle='rgba(121,192,255,'+(0.16*(1-d2/130))+')';cx.lineWidth=1;cx.beginPath();cx.moveTo(A.x,A.y);cx.lineTo(B.x,B.y);cx.stroke()}}
-  beacons.forEach(function(bc){bc.t=(bc.t+.012)%1;cx.strokeStyle='rgba(245,179,66,.55)';cx.setLineDash([5,5]);cx.beginPath();cx.moveTo(bc.from.x,bc.from.y);cx.lineTo(bc.to.x,bc.to.y);cx.stroke();cx.setLineDash([]);
-    var x=bc.from.x+(bc.to.x-bc.from.x)*bc.t,y=bc.from.y+(bc.to.y-bc.from.y)*bc.t;cx.fillStyle='#f5b342';cx.beginPath();cx.arc(x,y,3,0,7);cx.fill()});
-  var now=performance.now();
-  N.forEach(function(n){var c=COL[n.st],r=n.st?4.5:2.4;
-    if(n.st){var pu=(now%1400)/1400;cx.strokeStyle='rgba('+c+','+(1-pu)*.7+')';cx.beginPath();cx.arc(n.x,n.y,r+pu*22,0,7);cx.stroke()}
-    if(n.fl){cx.strokeStyle='rgba(121,192,255,.9)';cx.lineWidth=1.5;cx.beginPath();cx.arc(n.x,n.y,16,0,7);cx.stroke();cx.lineWidth=1}
-    cx.fillStyle='rgba('+c+','+(n.st?1:.65)+')';cx.beginPath();cx.arc(n.x,n.y,r,0,7);cx.fill()});
-  if(!reduce)requestAnimationFrame(frame)
-}
-frame();
+/* magnetic buttons */
+$$('.btn').forEach(function(b){
+  b.addEventListener('pointermove',function(e){if(e.pointerType==='touch')return;var r=b.getBoundingClientRect();b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.18)+'px,'+((e.clientY-r.top-r.height/2)*.28)+'px)'});
+  b.addEventListener('pointerleave',function(){b.style.transform=''})});
+
+/* cursor trail */
+if(!matchMedia('(pointer:coarse)').matches&&!reduce){
+  var dots=[],mx=-50,my=-50;for(var k=0;k<10;k++){var d=document.createElement('i');d.className='trail';d.style.background=COL[k%COL.length];d.style.width=d.style.height=(18-k)+'px';document.body.appendChild(d);dots.push({el:d,x:-50,y:-50})}
+  addEventListener('pointermove',function(e){mx=e.clientX;my=e.clientY});
+  (function t(){var px=mx,py=my;dots.forEach(function(d,i){d.x+=(px-d.x)*(.38-i*.025);d.y+=(py-d.y)*(.38-i*.025);px=d.x;py=d.y;d.el.style.transform='translate('+(d.x-9)+'px,'+(d.y-9)+'px)';d.el.style.opacity=1-i*.09});requestAnimationFrame(t)})()}
+
+/* draggable stickers */
+$$('.stk').forEach(function(s){var ox=0,oy=0,sx,sy,drag=false;
+  s.addEventListener('pointerdown',function(e){drag=true;sx=e.clientX-ox;sy=e.clientY-oy;s.setPointerCapture(e.pointerId)});
+  s.addEventListener('pointermove',function(e){if(!drag)return;ox=e.clientX-sx;oy=e.clientY-sy;s.style.translate=ox+'px '+oy+'px'});
+  s.addEventListener('pointerup',function(){drag=false;boom(innerWidth/2,innerHeight/2,0)})});
+
+/* flip cards tap */
+$$('.flip').forEach(function(f){f.addEventListener('click',function(){f.classList.toggle('on')})});
+
+/* pills stagger */
+$$('.pills span').forEach(function(p,i){p.style.setProperty('--d',(-(i%7)*.55)+'s')});
+
+/* confetti */
+var cv=$('#conf'),cx=cv.getContext('2d'),P=[],run=false;
+function fit(){cv.width=innerWidth;cv.height=innerHeight}fit();addEventListener('resize',fit);
+function boom(x,y,n){n=n===undefined?90:n;for(var i=0;i<n;i++){var a=Math.random()*6.28,v=6+Math.random()*12;P.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-6,r:Math.random()*6,vr:(Math.random()-.5)*.4,w:8+Math.random()*8,h:5+Math.random()*7,c:COL[i%COL.length],l:1})}if(n&&!run){run=true;tick()}}
+function tick(){cx.clearRect(0,0,cv.width,cv.height);P.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.35;p.vx*=.985;p.r+=p.vr;p.l-=.009;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.globalAlpha=Math.max(0,p.l);cx.fillStyle=p.c;cx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cx.strokeStyle='#14110f';cx.lineWidth=1.5;cx.strokeRect(-p.w/2,-p.h/2,p.w,p.h);cx.restore()});
+  P=P.filter(function(p){return p.l>0&&p.y<cv.height+40});if(P.length)requestAnimationFrame(tick);else{run=false;cx.clearRect(0,0,cv.width,cv.height)}}
+$('#boom').addEventListener('click',function(e){var r=e.target.getBoundingClientRect();boom(r.left+r.width/2,r.top,140)});
+
+/* triage game */
+var Q=[
+ {t:'Chrome installs a keyboard hook. Signed, allowlisted, seen on this host for months.',e:'proc=chrome.exe hook=WH_KEYBOARD_LL\nallowlist=yes seen=214d',a:0,x:'Capability is not intent. Trusted software does this all the time, and an allowlisted process scores zero.'},
+ {t:'Unknown process, no keyboard hook, no persistence. The ML model says 97% malicious.',e:'proc=a8f3.exe hook=none\nmodel_score=0.97',a:0,x:'A model score alone never fires an alert. It can only amplify a rule that already triggered.'},
+ {t:'Failed logins from one IP, then a success, then a steady 60s beacon, then bulk file reads.',e:'auth_anomaly → beacon σ=0.4s → file_read×900\nwindow=intact',a:1,x:'Full chain, in order, inside the window. This is exactly what correlation is for.'},
+ {t:'One request that looks a bit like a beacon. Nothing else around it.',e:'dst=203.0.113.9:443 x1\nno auth anomaly, no objective',a:0,x:'A beacon alone produces nothing. Without the rest of the chain it is just a data point.'},
+ {t:'Unsigned process holds a keyboard hook for days and imports clipboard and screenshot APIs.',e:'hook=yes persisted=6d\nimports=clip,screen T1056.001 T1113 T1115',a:1,x:'Persistence amplifies risk, and the import fingerprint backs the rule. Multiple layers agree.'},
+ {t:'A backup tool opens raw sockets every night at 02:00.',e:'proc=backupd cap=raw_socket\nallowlist=yes schedule=nightly',a:0,x:'Raw sockets are capability, not intent. Known software on a known schedule.'},
+ {t:'Brute-force burst on admin, then LSASS memory access by the same host.',e:'T1110.001 ×14 → T1003.001\nsame entity, 4m apart',a:1,x:'Two connected stages of a real credential-theft chain. Escalate.'},
+ {t:'An access anomaly appeared 3 days ago. Nothing has followed it since.',e:'auth_anomaly t-72h\nchain expired, no further stages',a:0,x:'Chains expire when the window lapses. A lone old anomaly is not an incident.'}];
+var qi=0,score=0,busy=false,res=[],deck=$('#deck'),pips=$('#pips');
+Q.forEach(function(){var p=document.createElement('span');p.className='pip';pips.appendChild(p)});
+function card(q,cls){var d=document.createElement('div');d.className='alert '+(cls||'');d.innerHTML='<div class="meta"><span>ALERT #'+String(Q.indexOf(q)+1).padStart(3,'0')+'</span><b>NEW</b></div><h4>'+q.t+'</h4><div class="ev">'+q.e.replace(/\n/g,'<br>')+'</div>';return d}
+function show(){deck.innerHTML='';if(qi>=Q.length)return end();if(qi+1<Q.length)deck.appendChild(card(Q[qi+1],'back'));deck.appendChild(card(Q[qi]));$('#count').textContent=(qi+1)+'/'+Q.length}
+function answer(v){if(busy||qi>=Q.length)return;busy=true;var q=Q[qi],ok=v===q.a,top=deck.lastElementChild;
+  pips.children[qi].className='pip '+(ok?'ok':'no');if(ok)score++;
+  $('#fb').innerHTML='<b>'+(ok?'Correct.':'Not quite.')+'</b> '+q.x;
+  if(!ok){top.classList.add('shake')}
+  setTimeout(function(){top.classList.add(v?'out-r':'out-l')},ok?0:450);
+  setTimeout(function(){qi++;busy=false;show()},ok?650:1100);
+  if(ok){var r=top.getBoundingClientRect();boom(r.left+r.width/2,r.top+r.height/2,26)}}
+function end(){$('#count').textContent='done';var m=score>=7?'Sharp. You triage like someone who hates false positives.':score>=5?'Solid. A few more rules and you will be tuning detections.':'Good start. Capability is not intent, and correlation beats volume. Try again.';
+  deck.innerHTML='<div class="alert" style="align-items:flex-start;justify-content:center;gap:10px;background:var(--yellow)"><div class="big">'+score+'/'+Q.length+'</div><h4>'+m+'</h4><button class="btn dark" id="again" style="margin-top:12px">Play again ↺</button></div>';
+  $('#again').onclick=function(){qi=0;score=0;[].forEach.call(pips.children,function(p){p.className='pip'});$('#fb').textContent='Read the alert, then decide.';show()};
+  if(score>=6){var r=deck.getBoundingClientRect();boom(r.left+r.width/2,r.top+60,160)}}
+$('#no').onclick=function(){answer(0)};$('#yes').onclick=function(){answer(1)};
+addEventListener('keydown',function(e){var r=$('#game').getBoundingClientRect();if(r.top>innerHeight||r.bottom<0)return;if(e.key==='ArrowLeft')answer(0);if(e.key==='ArrowRight')answer(1)});
+show();
 })();
 </script>
 </body>
